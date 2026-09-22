@@ -1,0 +1,10 @@
+node_modules/
+package-lock.json
+bun.lock
+bun.lockb
+coverage/
+.DS_Store
+build/
+.venv/
+__pycache__/
+*.tgz
