@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-09-28
 
 - A builder declares the SourceBag class of its Source in the static attribute
   `_sourceClass` (default `SourceBag`), as genro-builders `_source_class`. It
