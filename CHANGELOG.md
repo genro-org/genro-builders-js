@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 — 2026-09-28
+
+- Contract change: SourceBag has no SOURCE suffix. A Source travels as `::X`
+  with `__cls: "SourceBag"` on the root and on branches whose class differs
+  from the parent's, as in genro-builders 0.24.0.
+- Depend on Bag 0.9.0 and TYTX 0.16.0 from JSR; publish as `@genro/builders`.
+- Keep `${name}` literal in the attributes of data elements.
+- Commit `package-lock.json` and run the test suite in CI on Node 22.
+
 ## 0.1.3 — 2026-09-21 (local, unreleased)
 
 - Restrict template interpolation to attributes and support backslash-escaped tokens.
