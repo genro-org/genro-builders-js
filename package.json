@@ -1,6 +1,6 @@
 {
   "name": "genro-builders-js",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Browser-neutral declarative builders and static XML/HTML renderers",
   "type": "module",
   "main": "./src/index.js",
