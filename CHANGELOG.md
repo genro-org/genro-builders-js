@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- A builder declares the SourceBag class of its Source in the static attribute
+  `_sourceClass` (default `SourceBag`), as genro-builders `_source_class`. It
+  is used for `_sourceroot`, `source` and the component expansion root.
+- A scalar node promoted to a branch gets the class of its parent bag, as in
+  Python; before, the promotion always created a `SourceBag`.
+
 ## 0.2.1 — 2026-09-28
 
 - Exempt Bag and TYTX from the JSR minimum dependency age by exact name; the

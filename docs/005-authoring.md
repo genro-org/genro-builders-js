@@ -90,3 +90,39 @@ it travels as `::X` and is registered in the TYTX subtype dictionary of `X`
 under the name `SourceBag`. The root payload carries `__cls: "SourceBag"`; a
 branch carries `__cls` only when its class differs from its parent's. Decoding requires SourceBag and binds runtime builder
 ownership in place; it does not convert ordinary Bags into Source.
+
+<a id="gbj-005-025"></a>
+
+## 025 · Source class
+
+The builder declares the SourceBag class of its Source in the static
+attribute `_sourceClass`. The default is `SourceBag`. The Source declares the
+class of its nodes in its `nodeClass` getter (`SourceBagNode` for
+`SourceBag`). This is the legacy GenroPy pair `domSrcFactory` / node class.
+Python uses the same name in snake_case: `_source_class`.
+
+```js
+import { getSubtypeDict, setSubtypeDict } from '@jsr/genro__tytx';
+import { HtmlBuilder, SourceBag, SourceBagNode } from '@genro/builders';
+
+class PageNode extends SourceBagNode {}
+class PageSource extends SourceBag {
+    get nodeClass() { return PageNode; }
+}
+// Only needed for the TYTX wire: "::X" with __cls "PageSource".
+setSubtypeDict('X', { ...getSubtypeDict('X'), PageSource });
+
+class CustomerPage extends HtmlBuilder {
+    static _sourceClass = PageSource;
+    main(root) { root.html().body().h1('Customer page'); }
+}
+```
+
+- `new _sourceClass(null, builder)` is called for `_sourceroot`, for `source`
+  under `_root_` and for the component expansion root. A subclass keeps the
+  SourceBag constructor signature.
+- A branch created while authoring, including a scalar node promoted to a
+  branch, is an instance of the class of its parent bag, as in Python.
+- On the TYTX wire the Source travels as `::X` with `__cls` set to the name
+  under which its class is registered in the subtype dictionary of `X`. An
+  unregistered subclass cannot be serialized.

@@ -6,6 +6,8 @@ has no DOM, browser subscriptions, server or database dependencies.
 
 Version **0.2.1** targets JSR with the Bag 0.9 contract. Python parity is bounded by
 [documented differences](docs/020-python-differences.md). Recipes are not implemented.
+A builder declares the SourceBag class of its Source in `static _sourceClass`
+([Source class](docs/005-authoring.md#gbj-005-025)).
 
 ```js
 import { HtmlBuilder } from '@genro/builders';

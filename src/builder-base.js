@@ -80,6 +80,18 @@ export const SOURCE_ROOT = '_root_';
 export const DATA_ELEMENT_FIELDS = new Set(['destination', 'func', 'value', '_on_start']);
 
 export class BuilderBase {
+    /** The SourceBag class of this builder's Source (legacy GenroPy
+     *  `domSrcFactory`): the builder declares the class of the Source, the
+     *  Source declares the class of its nodes (`nodeClass`). It is
+     *  instantiated for `_sourceroot`, for the `source` payload under
+     *  SOURCE_ROOT and for the component expansion root, always as
+     *  `new _sourceClass(null, builder)`. Branches created while authoring,
+     *  including a promoted scalar node, follow the class of their parent
+     *  bag. Redefine it on a subclass to use a SourceBag subclass; to travel
+     *  on the TYTX wire, the subclass must be registered in the TYTX subtype
+     *  dictionary of `X`. Same name as Python `_source_class`. */
+    static _sourceClass = SourceBag;
+
     static registerBuilder(BuilderClass) {
         if (typeof BuilderClass !== 'function' || !(BuilderClass.prototype instanceof BuilderBase)) {
             throw new TypeError('registerBuilder requires a BuilderBase subclass');
@@ -118,11 +130,12 @@ export class BuilderBase {
         this._targetSerial = 0;
         this._subbuilders = new Map();
         this._sourceHandles = new WeakMap();
-        this._sourceroot = new SourceBag(null, this);
+        const SourceClass = this.constructor._sourceClass;
+        this._sourceroot = new SourceClass(null, this);
         // Backref first, so the SOURCE_ROOT sub-bag inherits it on insert
         // (bag-js propagates backref to children at insert time).
         this._sourceroot.setBackref();
-        this._sourceroot.setItem(SOURCE_ROOT, new SourceBag(null, this));
+        this._sourceroot.setItem(SOURCE_ROOT, new SourceClass(null, this));
         this.source = this._sourceroot.getItem(SOURCE_ROOT);
     }
 
@@ -305,7 +318,9 @@ export class BuilderBase {
             return this.setChild(node.value, tag, value, attrs);
         }
         const oldValue = node.value;
-        const branch = new SourceBag(null, node.builder || this);
+        // The branch is an instance of the parent bag's class, as in Python
+        // (`type(node.parent_bag)`): a SourceBag subclass propagates down.
+        const branch = new node.parentBag.constructor(null, node.builder || this);
         // Validate and insert into a detached branch first. A rejected child
         // therefore cannot change the authored parent.
         const child = this.setChild(branch, tag, value, attrs, node);
@@ -636,9 +651,10 @@ export class BuilderBase {
      *  anchor) is stamped on the structural node so the body's relative
      *  pointers find it through the ancestor climb. Built, rendered, dropped. */
     _expansionRoot(datapath = null) {
-        const wrapper = new SourceBag(null, this);
+        const SourceClass = this.constructor._sourceClass;
+        const wrapper = new SourceClass(null, this);
         wrapper.setBackref();   // before insert, so SOURCE_ROOT inherits it
-        wrapper.setItem(SOURCE_ROOT, new SourceBag(null, this),
+        wrapper.setItem(SOURCE_ROOT, new SourceClass(null, this),
             datapath ? { datapath } : null);
         return wrapper.getItem(SOURCE_ROOT);
     }
