@@ -13,7 +13,7 @@
  * (`#FORM`/`#ANCHOR`/`#<id>`).
  */
 import { Bag, BagNode } from '@jsr/genro__bag';
-import { registerClass, fromTytx, toTytx } from '@jsr/genro__tytx';
+import { fromTytx, getSubtypeDict, setSubtypeDict, toTytx } from '@jsr/genro__tytx';
 import { pythonKeywordAttribute } from './utils.js';
 
 /** Sentinel key for a node's own value in runtimeToEvaluate (Python's None). */
@@ -241,8 +241,6 @@ export class SourceBagNode extends BagNode {
 
 /** Bag subclass: dispatches tag names to the active builder. */
 export class SourceBag extends Bag {
-    static tytxSuffix = 'SOURCE';
-
     constructor(source = null, builder = null) {
         super(source);
         this._builder = builder;
@@ -315,7 +313,13 @@ export class SourceBag extends Bag {
     }
 }
 
-registerClass(SourceBag);
+// SourceBag travels on the TYTX wire as "::X" with __cls "SourceBag"
+// (genro-bag-js 0.9.0): its name joins the subtype dictionary of its type.
+// The name already owned by another class is a collision.
+if ((getSubtypeDict(SourceBag.tytxSuffix).SourceBag ?? SourceBag) !== SourceBag) {
+    throw new Error("TYTX subtype name 'SourceBag' is already registered for another class");
+}
+setSubtypeDict(SourceBag.tytxSuffix, { ...getSubtypeDict(SourceBag.tytxSuffix), SourceBag });
 
 /**
  * Split call arguments into `{value, attrs}`: `h1('Hello')` → value;

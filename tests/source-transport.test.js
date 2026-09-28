@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Bag } from '@jsr/genro__bag';
+import { fromTytx, getSubtypeDict, toTytx } from '@jsr/genro__tytx';
 import { BuilderBase, SourceBag, SourceBagNode,
     sourceBagFromTytx, sourceBagToTytx, wrapSource } from '../src/index.js';
 import { declaration, grammarDocument } from './grammar-fixture.js';
@@ -35,6 +36,34 @@ for (const transport of ['json', 'msgpack']) {
         assert.equal(result._builder, builder); assert.equal(result.getItem('box_0')._builder, builder);
     });
 }
+
+const wireRows = (payload) => JSON.parse(payload.slice(0, -'::X'.length));
+
+test('SourceBag is registered under its name in the subtype dictionary of X', () => {
+    assert.equal(getSubtypeDict('X').SourceBag, SourceBag);
+});
+
+test('a Source travels as ::X with __cls on the root and only on differing branches', () => {
+    const source = new SourceBag(); const children = new SourceBag();
+    tagged(children, 'leaf_0', 'leaf', 'hello');
+    tagged(source, 'box_0', 'box', children);
+    tagged(source, 'data_0', 'leaf', new Bag({ value: 42 }));
+    const payload = sourceBagToTytx(source);
+    assert.ok(payload.endsWith('::X'));
+    const wire = wireRows(payload);
+    assert.equal(wire.__cls, 'SourceBag');
+    const attrs = Object.fromEntries(wire.rows.map((row) => [row[1], row[4]]));
+    assert.equal(attrs.box_0.__cls, undefined);
+    assert.equal(attrs.data_0.__cls, 'Bag');
+});
+
+test('the generic TYTX encoder and decoder round-trip a Source', () => {
+    const source = new SourceBag(); tagged(source, 'box_0', 'box', new SourceBag());
+    const decoded = fromTytx(toTytx(source));
+    assert.equal(decoded.constructor, SourceBag);
+    assert.equal(decoded.getItem('box_0').constructor, SourceBag);
+    assert.equal(toTytx(decoded), toTytx(source));
+});
 
 test('bindBuilder rejects shared SourceBag graphs before changing ownership', () => {
     const original = new SourceBuilder(); const replacement = new SourceBuilder();

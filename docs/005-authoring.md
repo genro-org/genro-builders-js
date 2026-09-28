@@ -85,6 +85,8 @@ mechanism does not settle the separately deferred recipe API.
 
 `sourceBagToTytx(source, {transport:'json'})` and
 `sourceBagFromTytx(payload, builder, {transport:'json'})` delegate to TYTX.
-Use `msgpack` for the other checked transport. SourceBag registers the suffix
-`SOURCE`, without an alias. Decoding requires SourceBag and binds runtime builder
+Use `msgpack` for the other checked transport. SourceBag has no suffix of its own:
+it travels as `::X` and is registered in the TYTX subtype dictionary of `X`
+under the name `SourceBag`. The root payload carries `__cls: "SourceBag"`; a
+branch carries `__cls` only when its class differs from its parent's. Decoding requires SourceBag and binds runtime builder
 ownership in place; it does not convert ordinary Bags into Source.
