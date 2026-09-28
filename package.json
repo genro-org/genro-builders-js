@@ -30,7 +30,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@jsr/genro__bag": "npm:@jsr/genro__bag@^0.9.0",
+    "@jsr/genro__bag": "npm:@jsr/genro__bag@^0.10.0",
     "@jsr/genro__tytx": "npm:@jsr/genro__tytx@^0.16.0"
   }
 }
