@@ -22,7 +22,11 @@
     "age": "P1D",
     "exclude": [
       "jsr:@genro/*",
-      "npm:@jsr/genro__*"
+      "npm:@jsr/genro__*",
+      "jsr:@genro/bag",
+      "npm:@jsr/genro__bag",
+      "jsr:@genro/tytx",
+      "npm:@jsr/genro__tytx"
     ]
   }
 }
