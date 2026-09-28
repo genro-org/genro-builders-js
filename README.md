@@ -23,9 +23,10 @@ const html = page.render();
 Install the published package with `bunx jsr add @genro/builders` or
 `npx jsr add @genro/builders`. JSR is the only publication registry.
 
-From a local checkout, run `npm install --package-lock=false` and `npm test`.
+From a local checkout, run `npm ci` and `npm test`.
 Node.js 22 or later and Bun are the supported server runtimes. First-party
-JSR dependencies use compatible caret ranges without committed lockfiles.
+JSR dependencies use compatible caret ranges; the committed `package-lock.json`
+fixes the versions CI installs.
 Internal imports use JSR's npm compatibility names consistently to share one
 Bag class and TYTX registry instance across the dependency graph. The `.npmrc`
 resolves these packages from `npm.jsr.io`, not npmjs.com.
