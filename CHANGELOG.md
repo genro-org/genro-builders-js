@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 — 2026-09-28
+
+- Exempt Bag and TYTX from the JSR minimum dependency age by exact name; the
+  wildcard patterns do not match them. First JSR publication of the 0.2 line.
+
 ## 0.2.0 — 2026-09-28
 
 - Contract change: SourceBag has no SOURCE suffix. A Source travels as `::X`
