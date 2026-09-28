@@ -99,6 +99,17 @@ test('templates consume inputs, preserve source and report missing names', () =>
     assert.throws(() => builder.runtimeValues(builder.root.output(null, {title: '${missing}'})), /Unknown template parameter/);
 });
 
+test('data elements keep ${name} in their attributes as written', () => {
+    const builder = new StaticPage();
+    builder.data.setItem('total', 42);
+    const formula = builder.root.dataFormula({ destination: 'msg', func: 'double', script: '`Total: ${total}`', total: '^total' });
+    const [, attrs] = builder.runtimeValues(formula);
+    assert.equal(attrs.script, '`Total: ${total}`');
+    assert.equal(attrs.total, 42);
+    const unknown = builder.root.dataFormula({ destination: 'now', func: 'double', script: '`${Date.now()}` ${stamp}' });
+    assert.equal(builder.runtimeValues(unknown)[1].script, '`${Date.now()}` ${stamp}');
+});
+
 test('direct attribute resolvers use Bag resolution and its cache', async () => {
     const { BagCbResolver } = await import('genro-bag-js');
     let calls = 0;
