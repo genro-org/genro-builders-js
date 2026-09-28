@@ -15,7 +15,7 @@
  * pointers once for static creation/rendering; reactive subscriptions and
  * partial browser patches belong to Gramlot.
  */
-import { Bag, BagResolver } from 'genro-bag-js';
+import { Bag, BagResolver } from '@jsr/genro__bag';
 import { SourceBag, SourceBagNode, createSourceHandle, sourceTarget, VALUE } from './source-bag.js';
 import { parseGrammarDocument, resolveGrammarDeclarations, validateElementValues } from './grammar-loader.js';
 import { Collection } from './collection.js';
@@ -470,7 +470,7 @@ export class BuilderBase {
         }
         const consumed = new Set();
         for (const [k, v] of resolved) {
-            if (k === VALUE || typeof v !== 'string') continue;
+            if (isDataElement || k === VALUE || typeof v !== 'string') continue;
             resolved.set(k, v.replace(/(\\)?\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, (token, escaped, name) => {
                 if (escaped) return token.slice(1);
                 if (!resolved.has(name)) throw new Error(`Unknown template parameter '${name}'`);
@@ -531,7 +531,7 @@ export class BuilderBase {
         throw new Error(`data-element func '${func}' not found on any data_logic source`);
     }
 
-    /** Resolve static bindings/templates and remove the element's own fields. */
+    /** Resolve static bindings and remove the element's own fields. */
     _bindings(node) {
         const [, resolved] = this.runtimeValues(node);
         const out = {};

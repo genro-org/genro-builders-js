@@ -1,7 +1,7 @@
 // Copyright 2026 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { fromTytx } from 'genro-tytx';
+import { fromTytx } from '@jsr/genro__tytx';
 import { HtmlBuilder } from '../src/index.js';
 
 test('static presentation formats scalar content, consumes options and preserves Data', () => {

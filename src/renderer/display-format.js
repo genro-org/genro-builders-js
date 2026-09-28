@@ -1,7 +1,7 @@
 // Copyright 2026 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 /** Scalar presentation only: never use this on model/editor or logic bindings. */
-import {isDecimal} from 'genro-tytx';
-import {toTytx} from 'genro-tytx';
+import {isDecimal} from '@jsr/genro__tytx';
+import {toTytx} from '@jsr/genro__tytx';
 
 const STYLES = new Set(['short', 'medium', 'long', 'full']);
 const TOKENS = /('(?:[^']|'')*'|[a-zA-Z]+|[^a-zA-Z']+)/g;
