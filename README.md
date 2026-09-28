@@ -4,7 +4,7 @@ Build typed Source trees from JSON grammars and render static HTML, SVG or XML.
 The generic renderer also supports dialect-defined object output. This package
 has no DOM, browser subscriptions, server or database dependencies.
 
-Version **0.3.0** targets JSR with the Bag 0.9 contract. Python parity is bounded by
+Version **0.3.1** targets JSR with the Bag 0.10 contract. Python parity is bounded by
 [documented differences](docs/020-python-differences.md). Recipes are not implemented.
 A builder declares the SourceBag class of its Source in `static _sourceClass`
 ([Source class](docs/005-authoring.md#gbj-005-025)).

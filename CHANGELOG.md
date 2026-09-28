@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 — 2026-09-28
+
+- Depend on @genro/bag ^0.10.0.
+
 ## 0.3.0 — 2026-09-28
 
 - A builder declares the SourceBag class of its Source in the static attribute

@@ -1,10 +1,10 @@
 {
   "name": "@genro/builders",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "Apache-2.0",
   "exports": "./src/index.js",
   "imports": {
-    "@jsr/genro__bag": "jsr:@genro/bag@^0.9.0",
+    "@jsr/genro__bag": "jsr:@genro/bag@^0.10.0",
     "@jsr/genro__tytx": "jsr:@genro/tytx@^0.16.0"
   },
   "publish": {
