@@ -4,11 +4,11 @@ Build typed Source trees from JSON grammars and render static HTML, SVG or XML.
 The generic renderer also supports dialect-defined object output. This package
 has no DOM, browser subscriptions, server or database dependencies.
 
-Version **0.1.2** is prepared locally, not published. Python parity is bounded by
+Version **0.1.5** targets JSR with the native Bag 0.5 contract. Python parity is bounded by
 [documented differences](docs/020-python-differences.md). Recipes are not implemented.
 
 ```js
-import { HtmlBuilder } from 'genro-builders-js';
+import { HtmlBuilder } from '@genro/builders';
 
 const page = new HtmlBuilder();
 page.data.setItem('price', 1234.5);
@@ -20,12 +20,18 @@ const html = page.render();
 
 ## Install and verify
 
+Install the published package with `bunx jsr add @genro/builders` or
+`npx jsr add @genro/builders`. JSR is the only publication registry.
+
 From a local checkout, run `npm install --package-lock=false` and `npm test`.
-First-party dependencies follow their upstream development branches; no lockfile
-is maintained. If unpublished upstream changes are needed, local artifact testing
-must be identified as such rather than claimed as a clean upstream installation.
-Node needs JSON import-attribute support (18.20 or later); see the review record
-for the exact Node/Bun versions actually verified.
+Node.js 22 or later and Bun are the supported server runtimes. First-party
+JSR dependencies use compatible caret ranges without committed lockfiles.
+Internal imports use JSR's npm compatibility names consistently to share one
+Bag class and TYTX registry instance across the dependency graph. The `.npmrc`
+resolves these packages from `npm.jsr.io`, not npmjs.com.
+
+Deno publication keeps a 24-hour cooldown for external dependencies and exempts
+`jsr:@genro/*` and `npm:@jsr/genro__*` to permit verified sequential releases.
 
 ## Documentation
 

@@ -11,7 +11,7 @@
  * Static component expansion is part of the walk. Live update planning and
  * DOM patch bookkeeping belong to hosts such as Gramlot, not this renderer.
  */
-import { Bag } from 'genro-bag-js';
+import { Bag } from '@jsr/genro__bag';
 import { SourceBag, wrapSource } from '../source-bag.js';
 import { resolveRenderTag } from '../utils.js';
 

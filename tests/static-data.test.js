@@ -111,7 +111,7 @@ test('data elements keep ${name} in their attributes as written', () => {
 });
 
 test('direct attribute resolvers use Bag resolution and its cache', async () => {
-    const { BagCbResolver } = await import('genro-bag-js');
+    const { BagCbResolver } = await import('@jsr/genro__bag');
     let calls = 0;
     const resolver = new BagCbResolver({ callback: () => ++calls, cacheTime: -1 });
     const builder = new StaticPage();
