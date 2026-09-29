@@ -1,34 +1,15 @@
 // Copyright 2026 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
-import {parseCardinality} from './grammar-loader.js';
-
-/** Ordered JSON grammar composition; schema compilation belongs to the builder. */
+/** Ordered JSON grammar composition; schema compilation belongs to the builder.
+ *
+ *  Composition rule (shared with genro-builders, Python): a document applied
+ *  after another replaces, entirely, every `elements` and `abstracts` entry it
+ *  names (parameters, sub_tags, parent_tags, inherits_from, ns, doc, _meta,
+ *  node_label, collection_key). Entries it does not name are inherited
+ *  unchanged. `grammar` metadata is still merged key by key; a null value
+ *  keeps the earlier one. */
 function merge(current, incoming, path = []) {
-    const key = path.at(-1);
     if (incoming === null) return structuredClone(current);
-    if (path.length === 3 && ['abstracts', 'elements'].includes(path[0])
-        && ['sub_tags', 'parent_tags', 'inherits_from'].includes(key) && typeof incoming === 'string') {
-        const names = incoming.split(',').map(s => s.trim().split('[')[0]);
-        if (new Set(names).size !== names.length) throw new TypeError(`duplicate name in ${key}`);
-        if (!incoming || !current) return incoming;
-        if (key === 'sub_tags' && current.trim() === '*' && !incoming.includes('[')) {
-            parseCardinality(incoming, 'sub_tags');
-            return '*';
-        }
-        const entries = new Map(current.split(',').map(s => [s.trim().split('[')[0], s.trim()]));
-        for (const part of incoming.split(',')) entries.set(part.trim().split('[')[0], part.trim());
-        return [...entries.values()].join(',');
-    }
-    if (path.length === 4 && path[2] === 'attributes' && key === 'parameters'
-        && Array.isArray(current) && Array.isArray(incoming)) {
-        const entries = new Map(current.map(p => [p.name, structuredClone(p)]));
-        const seen = new Set();
-        for (const param of incoming) {
-            if (seen.has(param.name)) throw new TypeError(`duplicate parameter '${param.name}'`);
-            seen.add(param.name);
-            entries.set(param.name, structuredClone(param));
-        }
-        return [...entries.values()];
-    }
+    if (path.length === 2 && ['abstracts', 'elements'].includes(path[0])) return structuredClone(incoming);
     if (record(current) && record(incoming)) {
         const result = structuredClone(current);
         for (const [name, value] of Object.entries(incoming)) {
@@ -68,7 +49,9 @@ export class Collection {
         }
         this.#document = structuredClone(document);
     }
-    /** Compose subsequent declarations; absent/null fields preserve earlier values. */
+    /** Compose a later document: an element or abstract it names replaces the
+     *  earlier entry entirely, the others are kept; `grammar` metadata merges
+     *  and a null metadata value preserves the earlier one. */
     update(document) {
         const incoming = new Collection(document);
         this.#document = merge(this.#document, incoming.#document);
