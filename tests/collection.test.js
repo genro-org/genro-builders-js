@@ -5,29 +5,30 @@ import {grammarDocument as document} from './grammar-fixture.js';
 const param=(name, type='str')=>({name, kind:'keyword_only',role:'attribute',
     annotation:{kind:'type',module:'builtins',name:type},has_default:true,default:null});
 
-test('partial collections merge named declarations without mutating inputs', () => {
+test('a later collection replaces the named declarations without mutating inputs', () => {
     const original=document('base', {panel:{sub_tags:'leaf[1:2]',doc:'kept',
         attributes:{parameters:[param('title'),param('id')]},_meta:{options:{left:1,right:2}}},leaf:{sub_tags:''}});
     const saved=structuredClone(original);
     const collection=new Collection(original).update(document('extension', {panel:{
-        sub_tags:'leaf[1:4],extra',doc:null,attributes:{parameters:[param('title','int'),param('lbl')]},
-        _meta:{options:{left:3,right:null}}}, extra:{sub_tags:''}}));
+        sub_tags:'leaf[1:4],extra',attributes:{parameters:[param('title','int'),param('lbl')]},
+        _meta:{options:{left:3}}}, extra:{sub_tags:''}}));
     const result=collection.toDocument(),panel=result.elements.panel;
-    assert.equal(panel.doc,'kept');assert.equal(panel.sub_tags,'leaf[1:4],extra');
-    assert.deepEqual(panel._meta.options,{left:3,right:2});
-    assert.deepEqual(panel.attributes.parameters.map(p=>p.name),['title','id','lbl']);
+    assert.equal(panel.doc,undefined);assert.equal(panel.sub_tags,'leaf[1:4],extra');
+    assert.deepEqual(panel._meta.options,{left:3});
+    assert.deepEqual(panel.attributes.parameters.map(p=>p.name),['title','lbl']);
+    assert.deepEqual(result.elements.leaf,{sub_tags:''});
     const builder=new BuilderBase().loadGrammar(result,{replace:true});
-    const parent=builder.root.panel({title:2,id:'x',lbl:'Label'});parent.leaf();parent.extra();
+    const parent=builder.root.panel({title:2,lbl:'Label'});parent.leaf();parent.extra();
     assert.throws(()=>builder.root.panel({title:'wrong'}),/invalid value/);
     assert.deepEqual(original,saved);
     delete result.elements.panel;assert.ok(collection.toDocument().elements.panel);
 });
 
-test('an abstract patch recompiles its dependents without changing another instance',()=>{
+test('an abstract replacement recompiles its dependents without changing another instance',()=>{
     const initial=document('base',{panel:{inherits_from:'flow'},leaf:{sub_tags:''}},{flow:{sub_tags:'leaf'}});
     const builder=new BuilderBase().loadGrammar(initial,{replace:true});
     builder.loadGrammar(document('extension',{extra:{sub_tags:''}},{flow:{sub_tags:'extra'}}));
-    assert.equal(builder.schema.panel.sub_tags,'leaf,extra');
+    assert.equal(builder.schema.panel.sub_tags,'extra');
     assert.equal(new BuilderBase().loadGrammar(initial,{replace:true}).schema.panel.sub_tags,'leaf');
 });
 
@@ -72,13 +73,13 @@ test('JSON updates preserve executable component declarations',()=>{
     assert.equal(builder.render(),'<span>kept</span>');
 });
 
-test('bare child additions preserve an existing wildcard',()=>{
+test('a redefined element replaces an existing wildcard',()=>{
     const builder=new BuilderBase().loadGrammar(document('base',{panel:{sub_tags:'*'}}),{replace:true});
     builder.loadGrammar(document('extension',{panel:{sub_tags:'span,p'},span:{},p:{}}));
-    assert.equal(builder.schema.panel.sub_tags,'*');
+    assert.equal(builder.schema.panel.sub_tags,'span,p');
     builder.root.panel().span();
     const before=builder._collection.toDocument();
-    for(const invalid of ['bad!','span,span','span[1:2]']) {
+    for(const invalid of ['bad!','span,span']) {
         assert.throws(()=>builder.loadGrammar(document('invalid',{panel:{sub_tags:invalid}})));
         assert.deepEqual(builder._collection.toDocument(),before);
     }

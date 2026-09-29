@@ -1,0 +1,55 @@
+{
+  "document_format": {
+    "name": "builder_grammar",
+    "version": "1.1"
+  },
+  "grammar": {
+    "name": "replace-child",
+    "version": null,
+    "title": null,
+    "description": null
+  },
+  "abstracts": {
+    "flow": {
+      "doc": null,
+      "sub_tags": "extra",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": null,
+      "_meta": null
+    }
+  },
+  "elements": {
+    "panel": {
+      "doc": null,
+      "sub_tags": "leaf",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": {
+        "parameters": [
+          {
+            "name": "lbl",
+            "kind": "positional_or_keyword",
+            "role": "attribute",
+            "annotation": {
+              "kind": "type",
+              "module": "builtins",
+              "name": "str"
+            },
+            "has_default": true,
+            "default": null
+          }
+        ],
+        "accepts_var_keyword": false,
+        "accepts_var_positional": false
+      },
+      "node_label": null,
+      "collection_key": null,
+      "_meta": {
+        "origin": "child"
+      }
+    }
+  }
+}

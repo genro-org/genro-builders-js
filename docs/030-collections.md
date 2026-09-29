@@ -8,43 +8,47 @@ Source, Data, rendering, subscriptions or a registry of loaded documents.
 
 <a id="gbj-030-005"></a>
 
-## 005 · Partial declarations
+## 005 · Composition rule
 
-The envelope is unchanged. Only declarations inside abstracts/elements may omit
-fields. For example, this extension adds metadata to div without repeating HTML:
+A Collection contains one document and composes later documents onto it with
+`update`. The rule is per entry, and it is the same in genro-builders (Python):
+
+- An element or abstract named by a later document replaces the earlier entry
+  entirely: parameters, sub_tags, parent_tags, inherits_from, ns, doc, _meta,
+  node_label, collection_key. Nothing of the earlier entry survives.
+- Elements and abstracts the later document does not name are inherited unchanged.
+- `grammar` metadata is merged key by key; a null value keeps the earlier one.
+- A null entry (`"div": null`) leaves the earlier entry unchanged.
+
+For example, this document replaces div; the earlier div keeps nothing:
 
 ```json
 {
   "document_format": {"name": "builder_grammar", "version": "1.1"},
   "grammar": {"name": "application", "version": null, "title": null, "description": null},
   "abstracts": {},
-  "elements": {"div": {"_meta": {"feature": "label"}}}
+  "elements": {"div": {"sub_tags": "span", "_meta": {"feature": "label"}}}
 }
 ```
 
-This declares metadata; it does not implement a labeling capability.
+Rationale: a dialect extending HtmlBuilder must own the data-elements with its own
+signatures. With merging, the required `destination` of the generic `dataSetter`
+would survive in a dialect that declares `destination_path`.
 
 <a id="gbj-030-010"></a>
 
-## 010 · Composition
+## 010 · Validation and export
 
-- Missing or null declaration fields leave the earlier value unchanged.
-- Non-null scalar values update fields. Empty strings remain explicit values.
-- sub_tags, parent_tags and inherits_from combine named entries in order.
-  A repeated child tag updates its cardinality; untouched tags remain.
-- Signature parameters combine by name. Each supplied parameter is a complete
-  descriptor, including its type/default information; no parameter is removed.
-- Nested metadata objects merge; other arrays replace the previous array value.
-- Current metadata lives in grammar. New author/license fields are not introduced.
-- There are no removal methods/markers or generated HTML documentation in this step.
+- Empty strings remain explicit values, including `sub_tags: ""` for no children.
+- There are no removal methods or markers.
+- The compiled result is validated by the builder (duplicate names, parameters,
+  cardinalities, inheritance) before it is published.
+- Loading an invalid composition does not publish a new Collection or schema.
+  Exported JSON and input documents are independent copies, not writable aliases
+  of internal state.
+- The full-grammar `replace: true` loading option remains explicit.
 
-The existing full-grammar replace loading option remains explicit. Loading an
-invalid composition does not publish a new Collection or schema. Exported JSON
-and input documents are independent copies, not writable aliases of internal state.
-
-Exporters continue to emit complete declarations. They need no migration because
-null leaves previous fields unchanged. Full declarations and partial additions use
-one format and one composition path.
+Shared fixtures for this rule are in `tests/fixtures/grammar-replace/`.
 
 <a id="gbj-030-015"></a>
 
@@ -67,11 +71,6 @@ calls on the same class. Child class changes do not mutate parent class grammar.
 
 ## Open points
 
-- An existing sub_tags="*" remains "*" when later collections add bare child
-  names such as span. Combining the wildcard with cardinality restrictions remains
-  undecided and is rejected; malformed incoming rules are not silently ignored.
 - Python runtime include_components rendering already fails to find an
   instance-only component method (confirmed before these changes). Declaration
   preservation is checked here; that renderer defect is not repaired in this port.
-- This is JSON collection composition. Arbitrary Python types/callable validators
-  remain outside the portable grammar loader's supported annotation vocabulary.
