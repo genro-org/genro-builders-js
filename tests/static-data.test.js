@@ -24,7 +24,7 @@ class StaticPage extends BuilderBase {
     }
 }
 
-test('builder owns flat data and create computes every data element once', () => {
+test('builder data is the content Bag under the _dataroot wrapper and create computes every data element once', () => {
     const builder = new StaticPage();
     builder.create();
 
