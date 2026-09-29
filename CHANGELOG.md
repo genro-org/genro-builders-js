@@ -1,12 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-09-29
 
 - Contract change: a document applied after another (`defineGrammar` on a
   subclass, `loadGrammar` without `replace`) replaces, entirely, every element
   and abstract entry it names; it no longer merges parameters, `sub_tags`,
   `parent_tags`, `inherits_from` or other keys with the earlier entry. Entries
   not named are inherited unchanged. `grammar` metadata still merges. (#10)
+- The datastore has a stable root, as the Source: a private wrapper
+  `_dataroot` with the content node `_root_` (`DATA_ROOT`, exported).
+  `builder.data` stays the content Bag, so author paths do not change.
+  Sub-builders share the content and the wrapper; the builder exposes no
+  subscription. Same structure as genro-builders 0.27.0. (#11)
 
 ## 0.3.1 — 2026-09-28
 
