@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Contract change: a document applied after another (`defineGrammar` on a
+  subclass, `loadGrammar` without `replace`) replaces, entirely, every element
+  and abstract entry it names; it no longer merges parameters, `sub_tags`,
+  `parent_tags`, `inherits_from` or other keys with the earlier entry. Entries
+  not named are inherited unchanged. `grammar` metadata still merges. (#10)
+
 ## 0.3.1 — 2026-09-28
 
 - Depend on @genro/bag ^0.10.0.

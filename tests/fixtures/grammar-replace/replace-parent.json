@@ -1,0 +1,127 @@
+{
+  "document_format": {
+    "name": "builder_grammar",
+    "version": "1.1"
+  },
+  "grammar": {
+    "name": "replace-parent",
+    "version": null,
+    "title": null,
+    "description": null
+  },
+  "abstracts": {
+    "flow": {
+      "doc": "parent flow",
+      "sub_tags": "leaf",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": null,
+      "_meta": {
+        "origin": "parent"
+      }
+    },
+    "untouched": {
+      "doc": "untouched abstract",
+      "sub_tags": "extra",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": null,
+      "_meta": null
+    }
+  },
+  "elements": {
+    "panel": {
+      "doc": "parent panel",
+      "sub_tags": "leaf[1:2],extra",
+      "parent_tags": "root",
+      "inherits_from": "flow",
+      "ns": "parent_ns",
+      "attributes": {
+        "parameters": [
+          {
+            "name": "title",
+            "kind": "positional_or_keyword",
+            "role": "attribute",
+            "annotation": {
+              "kind": "type",
+              "module": "builtins",
+              "name": "str"
+            },
+            "has_default": true,
+            "default": null
+          },
+          {
+            "name": "id",
+            "kind": "positional_or_keyword",
+            "role": "attribute",
+            "annotation": {
+              "kind": "type",
+              "module": "builtins",
+              "name": "str"
+            },
+            "has_default": true,
+            "default": null
+          }
+        ],
+        "accepts_var_keyword": false,
+        "accepts_var_positional": false
+      },
+      "node_label": null,
+      "collection_key": null,
+      "_meta": {
+        "origin": "parent",
+        "options": {
+          "left": 1
+        }
+      }
+    },
+    "leaf": {
+      "doc": null,
+      "sub_tags": "",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": null,
+      "node_label": null,
+      "collection_key": null,
+      "_meta": null
+    },
+    "extra": {
+      "doc": null,
+      "sub_tags": "",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": null,
+      "node_label": null,
+      "collection_key": null,
+      "_meta": null
+    },
+    "root": {
+      "doc": null,
+      "sub_tags": "panel",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": null,
+      "node_label": null,
+      "collection_key": null,
+      "_meta": null
+    },
+    "other": {
+      "doc": "untouched element",
+      "sub_tags": "leaf",
+      "parent_tags": null,
+      "inherits_from": null,
+      "ns": null,
+      "attributes": null,
+      "node_label": null,
+      "collection_key": null,
+      "_meta": {
+        "keep": true
+      }
+    }
+  }
+}

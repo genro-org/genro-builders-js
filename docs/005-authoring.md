@@ -30,13 +30,17 @@ Both require the `builder_grammar` 1.1 document envelope with
 JavaScript decorator API is supplied. The bundled JSON documents are working
 examples of the format; do not maintain duplicate native tag lists.
 
-Both compose through `Collection`: declarations can contain only added or changed
-fields. Omitted/null fields preserve earlier values. Signature parameters compose
-by name (each supplied descriptor is complete); child rules compose by tag, with
-new cardinalities replacing old ones. Nested metadata objects merge; other arrays
-are values. An empty string remains explicit, including `sub_tags: ""` for no
-children. No removal marker is interpreted. Repeated grammar names still update.
-`replace:true` retains its existing whole-grammar reset meaning.
+Both compose through `Collection`, in order, earlier document first. The rule is
+per entry: an element or abstract named by a later document replaces the earlier
+entry entirely (parameters, `sub_tags`, `parent_tags`, `inherits_from`, `ns`,
+`doc`, `_meta`, `node_label`, `collection_key`). Nothing of the earlier entry
+survives, so a dialect can own an element with its own signature, for example
+`dataSetter(destination_path, value=None, **attr)` instead of the generic one.
+Elements and abstracts the later document does not name are inherited unchanged.
+`grammar` metadata is still merged key by key; a null value keeps the earlier one.
+`defineGrammar` applies the rule along the class chain, parent first, and
+`loadGrammar` applies it to the instance grammar. `replace:true` retains its
+existing whole-grammar reset meaning.
 
 `new Collection(document).update(extension).toDocument()` exposes composition and
 exports an independent JSON object in the same format. It owns neither Source nor

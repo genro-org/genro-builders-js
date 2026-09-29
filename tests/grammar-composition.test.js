@@ -114,7 +114,7 @@ test('a subclass can override an exact tag without changing its parent', () => {
     assert.equal(new Parent().schema.Item.sub_tags, '');
 });
 
-test('a subclass abstract override re-resolves inherited elements without changing its parent', () => {
+test('a subclass abstract replacement re-resolves inherited elements without changing its parent', () => {
     class Parent extends BuilderBase {
         static { this.defineGrammar(document('parent', {
             panel: declaration({ inherits_from: 'flow' }),
@@ -127,7 +127,7 @@ test('a subclass abstract override re-resolves inherited elements without changi
     }
 
     assert.equal(new Parent().schema.panel.sub_tags, 'oldLeaf');
-    assert.equal(new Child().schema.panel.sub_tags, 'oldLeaf,newLeaf');
+    assert.equal(new Child().schema.panel.sub_tags, 'newLeaf');
 });
 
 test('a portable subclass element may inherit a parent abstract', () => {
@@ -145,7 +145,7 @@ test('a portable subclass element may inherit a parent abstract', () => {
     assert.equal(new Child().schema.panel.sub_tags, 'leaf');
 });
 
-test('a subclass abstract override re-resolves inherited abstract chains', () => {
+test('a subclass abstract replacement re-resolves inherited abstract chains', () => {
     class Parent extends BuilderBase {
         static { this.defineGrammar(document('parent', {
             panel: declaration({ inherits_from: 'flow' }),
@@ -161,7 +161,7 @@ test('a subclass abstract override re-resolves inherited abstract chains', () =>
     }
 
     assert.equal(new Parent().schema.panel.sub_tags, 'oldLeaf');
-    assert.equal(new Child().schema.panel.sub_tags, 'oldLeaf,newLeaf');
+    assert.equal(new Child().schema.panel.sub_tags, 'newLeaf');
 });
 
 test('a subclass inheritance cycle fails without changing inherited class state', () => {
