@@ -6,7 +6,7 @@ Document ID: **GBJ-005**.
 
 ## 005 · Ownership
 
-`BuilderBase` owns a JSON grammar, one flat Data Bag, a Source tree and the
+`BuilderBase` owns a JSON grammar, one Data Bag, a Source tree and the
 create/render lifecycle. `SourceBag` and `SourceBagNode` extend Bag types with
 builder ownership, Data paths and authoring access. `builder.source` is the raw
 SourceBag; `builder.root` is its stable fluent Proxy. Ordinary Bags remain Data,
@@ -65,6 +65,14 @@ computes a value and `dataController({func,...})` runs a side effect. A function
 receives a bindings object; controllers additionally receive the Source node first.
 Named logic resolves static methods on dataLogic sources. Arbitrary code strings
 are not evaluated.
+
+The Data Bag is the content of a private wrapper, as the Source is: `_dataroot`
+holds one node `_root_` (`DATA_ROOT`, the same value as `SOURCE_ROOT`) and
+`builder.data` is that node's value, with backrefs on. Author paths never include
+`_root_`. The content node is never replaced, and sub-builders share the parent's
+content Bag and wrapper. The builder has no subscription API: a consumer that
+carries Data out of the builder subscribes once on `_dataroot` and receives nested
+`ins`/`upd_value`/`del` events with a pathlist starting with `_root_`.
 
 Both `^path` and `=path` read Data during static rendering; neither subscribes.
 Relative paths use Source datapath scopes. Symbolic anchors include #FORM, #ANCHOR

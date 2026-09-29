@@ -11,7 +11,10 @@
  * wrapper root (`_sourceroot`): `source` is the payload `main` builds and
  * `_sourceroot` provides the tree-not-forest guarantee.
  *
- * The builder owns one flat Data Bag. `runtimeValues(node)` resolves `^`/`=`
+ * The builder owns one Data Bag, the content of the private `_dataroot`
+ * wrapper under the structural `DATA_ROOT` segment, as the Source has
+ * `_sourceroot`. `data` is the content Bag; the content node is never
+ * replaced, so a consumer can subscribe once on the wrapper. `runtimeValues(node)` resolves `^`/`=`
  * pointers once for static creation/rendering; reactive subscriptions and
  * partial browser patches belong to Gramlot.
  */
@@ -70,6 +73,10 @@ function grammarTagNames(schema) {
 /** Structural segment that carries the payload source (tree-not-forest). */
 export const SOURCE_ROOT = '_root_';
 
+/** Structural segment that carries the content Data Bag (tree-not-forest).
+ *  Same value as SOURCE_ROOT: the Data wrapper is built like the Source one. */
+export const DATA_ROOT = '_root_';
+
 /** Data-elements: transparent @elements (marked `_meta.data_element`) that
  *  run once during static creation — a setter seeds a datum, a formula computes
  *  one from others, a controller runs side effects. Grammar of BuilderBase,
@@ -119,8 +126,11 @@ export class BuilderBase {
 
     constructor(name = null) {
         this.name = name || this.constructor._name;
-        this.data = new Bag();
-        this.data.setBackref();
+        // Backref first, so the DATA_ROOT content Bag inherits it on insert.
+        this._dataroot = new Bag();
+        this._dataroot.setBackref();
+        this._dataroot.setItem(DATA_ROOT, new Bag());
+        this.data = this._dataroot.getItem(DATA_ROOT);
         this._defaultTargets = new Map();
         this.materialized = Object.create(null);
         this._collection = null;
@@ -166,6 +176,7 @@ export class BuilderBase {
             subbuilder = new BuilderClass();
             this._subbuilders.set(name, subbuilder);
         }
+        subbuilder._dataroot = this._dataroot;
         subbuilder.data = this.data;
         return subbuilder;
     }

@@ -4,7 +4,7 @@ export {
     SourceBag, SourceBagNode, wrapSource, sourceTarget, VALUE, META_ATTRS,
     sourceBagToTytx, sourceBagFromTytx, sourceAttributeItems,
 } from './source-bag.js';
-export { BuilderBase, SOURCE_ROOT, DATA_ELEMENT_FIELDS } from './builder-base.js';
+export { BuilderBase, SOURCE_ROOT, DATA_ROOT, DATA_ELEMENT_FIELDS } from './builder-base.js';
 export { RendererBase } from './renderer/base.js';
 export { XmlRenderer } from './renderer/xml.js';
 export { HtmlRenderer } from './renderer/html.js';
