@@ -1,7 +1,7 @@
 {
   "name": "@genrojs/builders",
   "version": "0.4.1",
-  "description": "Browser-neutral declarative builders and static XML/HTML renderers",
+  "description": "Grammar-driven builders: typed Source trees from JSON grammars, for any dialect, with pluggable renderers.",
   "type": "module",
   "main": "./src/index.js",
   "exports": {
