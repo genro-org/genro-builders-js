@@ -4,7 +4,7 @@ Build typed Source trees from JSON grammars and render static HTML, SVG or XML.
 The generic renderer also supports dialect-defined object output. This package
 has no DOM, browser subscriptions, server or database dependencies.
 
-Version **0.4.0** targets JSR with the Bag 0.10 contract. Python parity is bounded by
+Version **0.4.1** is published on npm and JSR with the Bag 0.10 contract. Python parity is bounded by
 [documented differences](docs/020-python-differences.md). Recipes are not implemented.
 A builder declares the SourceBag class of its Source in `static _sourceClass`
 ([Source class](docs/005-authoring.md#gbj-005-025)).
@@ -22,19 +22,23 @@ const html = page.render();
 
 ## Install and verify
 
-Install the published package with `bunx jsr add @genro/builders` or
-`npx jsr add @genro/builders`. JSR is the only publication registry.
+The same package is published on two registries:
+
+- npm: `npm install @genrojs/builders`, then import from `@genrojs/builders`;
+- JSR: `npx jsr add @genro/builders` (or `bunx jsr add`), then import from
+  `@genro/builders`.
 
 From a local checkout, run `npm ci` and `npm test`.
 Node.js 22 or later and Bun are the supported server runtimes. First-party
-JSR dependencies use compatible caret ranges; the committed `package-lock.json`
+dependencies use compatible caret ranges; the committed `package-lock.json`
 fixes the versions CI installs.
-Internal imports use JSR's npm compatibility names consistently to share one
-Bag class and TYTX registry instance across the dependency graph. The `.npmrc`
-resolves these packages from `npm.jsr.io`, not npmjs.com.
+The source imports Bag and TYTX as `@genrojs/bag` and `@genrojs/tytx`, the npm
+names; `jsr.json` maps them to `jsr:@genro/bag` and `jsr:@genro/tytx`. Each
+registry's package therefore depends on one Bag class and one TYTX registry
+instance from the same registry.
 
 Deno publication keeps a 24-hour cooldown for external dependencies and exempts
-`jsr:@genro/*` and `npm:@jsr/genro__*` to permit verified sequential releases.
+`jsr:@genro/*` and `npm:@genrojs/*` to permit verified sequential releases.
 
 ## Documentation
 

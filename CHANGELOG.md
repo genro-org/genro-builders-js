@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1 — 2026-10-01
+
+- Published on npm as `@genrojs/builders`, alongside JSR `@genro/builders`;
+  `publish.yml` releases a version tag to both registries.
+- Bag and TYTX are imported as `@genrojs/bag` (`^0.10.1`) and `@genrojs/tytx`
+  (`^0.16.1`); `jsr.json` maps them to `jsr:@genro/bag` and `jsr:@genro/tytx`.
+  The `@jsr/genro__*` aliases and the `.npmrc` registry line are gone.
+- Repository URLs point to `genro-org/genro-builders-js`.
+
 ## 0.4.0 — 2026-09-29
 
 - Contract change: a document applied after another (`defineGrammar` on a

@@ -12,8 +12,8 @@
  * Ported linearly from source_bag.py, including symbolic datapaths
  * (`#FORM`/`#ANCHOR`/`#<id>`).
  */
-import { Bag, BagNode } from '@jsr/genro__bag';
-import { fromTytx, getSubtypeDict, setSubtypeDict, toTytx } from '@jsr/genro__tytx';
+import { Bag, BagNode } from '@genrojs/bag';
+import { fromTytx, getSubtypeDict, setSubtypeDict, toTytx } from '@genrojs/tytx';
 import { pythonKeywordAttribute } from './utils.js';
 
 /** Sentinel key for a node's own value in runtimeToEvaluate (Python's None). */

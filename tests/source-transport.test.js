@@ -1,8 +1,8 @@
 // Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Bag } from '@jsr/genro__bag';
-import { fromTytx, getSubtypeDict, toTytx } from '@jsr/genro__tytx';
+import { Bag } from '@genrojs/bag';
+import { fromTytx, getSubtypeDict, toTytx } from '@genrojs/tytx';
 import { BuilderBase, SourceBag, SourceBagNode,
     sourceBagFromTytx, sourceBagToTytx, wrapSource } from '../src/index.js';
 import { declaration, grammarDocument } from './grammar-fixture.js';

@@ -1,6 +1,6 @@
 {
-  "name": "genro-builders-js",
-  "version": "0.4.0",
+  "name": "@genrojs/builders",
+  "version": "0.4.1",
   "description": "Browser-neutral declarative builders and static XML/HTML renderers",
   "type": "module",
   "main": "./src/index.js",
@@ -24,13 +24,16 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/genropy/genro-builders-js"
+    "url": "git+https://github.com/genro-org/genro-builders-js.git"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
-    "@jsr/genro__bag": "npm:@jsr/genro__bag@^0.10.0",
-    "@jsr/genro__tytx": "npm:@jsr/genro__tytx@^0.16.0"
+    "@genrojs/bag": "^0.10.1",
+    "@genrojs/tytx": "^0.16.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
