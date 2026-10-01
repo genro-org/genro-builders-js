@@ -18,7 +18,7 @@
  * pointers once for static creation/rendering; reactive subscriptions and
  * partial browser patches belong to Gramlot.
  */
-import { Bag, BagResolver } from '@jsr/genro__bag';
+import { Bag, BagResolver } from '@genrojs/bag';
 import { SourceBag, SourceBagNode, createSourceHandle, sourceTarget, VALUE } from './source-bag.js';
 import { parseGrammarDocument, resolveGrammarDeclarations, validateElementValues } from './grammar-loader.js';
 import { Collection } from './collection.js';

@@ -114,7 +114,7 @@ class of its nodes in its `nodeClass` getter (`SourceBagNode` for
 Python uses the same name in snake_case: `_source_class`.
 
 ```js
-import { getSubtypeDict, setSubtypeDict } from '@jsr/genro__tytx';
+import { getSubtypeDict, setSubtypeDict } from '@genrojs/tytx';
 import { HtmlBuilder, SourceBag, SourceBagNode } from '@genro/builders';
 
 class PageNode extends SourceBagNode {}

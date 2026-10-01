@@ -55,7 +55,7 @@ Shared fixtures for this rule are in `tests/fixtures/grammar-replace/`.
 ## 015 · JavaScript API
 
 ```javascript
-import {Collection, HtmlBuilder} from 'genro-builders-js';
+import {Collection, HtmlBuilder} from '@genrojs/builders';
 
 const collection = new Collection(baseDocument);
 collection.update(extensionDocument);

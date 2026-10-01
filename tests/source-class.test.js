@@ -10,8 +10,8 @@
 // dictionary of `X`.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Bag } from '@jsr/genro__bag';
-import { fromTytx, getSubtypeDict, setSubtypeDict, toTytx } from '@jsr/genro__tytx';
+import { Bag } from '@genrojs/bag';
+import { fromTytx, getSubtypeDict, setSubtypeDict, toTytx } from '@genrojs/tytx';
 import { BuilderBase, SourceBag, SourceBagNode, sourceBagFromTytx, sourceBagToTytx } from '../src/index.js';
 import { declaration, grammarDocument } from './grammar-fixture.js';
 
