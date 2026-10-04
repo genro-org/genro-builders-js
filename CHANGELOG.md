@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2 — 2026-10-04
+
+- Hand-written type declarations with JSDoc in `src/index.d.ts`, referenced
+  from `src/index.js` with `@ts-self-types`. No runtime change.
+- Bag dependency raised to `^0.10.3`, the first version with its own type
+  declarations.
+
 ## 0.4.1 — 2026-10-01
 
 - Published on npm as `@genrojs/builders`, alongside JSR `@genro/builders`;

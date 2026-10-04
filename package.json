@@ -1,6 +1,6 @@
 {
   "name": "@genrojs/builders",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Grammar-driven builders: typed Source trees from JSON grammars, for any dialect, with pluggable renderers.",
   "type": "module",
   "main": "./src/index.js",
@@ -30,7 +30,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@genrojs/bag": "^0.10.1",
+    "@genrojs/bag": "^0.10.3",
     "@genrojs/tytx": "^0.16.1"
   },
   "publishConfig": {
