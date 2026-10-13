@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 — 2026-10-13
+
+- Add the shared `CustomTypes` registry, direct JS registration, and grammar 1.2
+  catalogs with named parameter references; keep accepting 1.1 documents.
+- Reject conflicting catalog names during atomic grammar composition.
+- Validate registered constraints before Source pointer resolution/discovery and
+  during explicit Source validation, including serialized Source.
+- Test against current stable Genro dependencies (TYTX ^0.16.2).
+
 ## 0.4.2 — 2026-10-04
 
 - Hand-written type declarations with JSDoc in `src/index.d.ts`, referenced

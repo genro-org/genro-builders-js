@@ -14,7 +14,25 @@ export type SourceTransport = 'json' | 'xml' | 'msgpack';
 export type JsonValue =
     | null | string | number | boolean | JsonValue[] | { [key: string]: JsonValue };
 
-/** A grammar document in the `builder_grammar` 1.1 format. */
+export interface CustomTypeReference { kind: 'custom'; name: string; }
+export type CustomTypeCatalog = { [name: string]: { [key: string]: JsonValue } };
+
+/** Named constraints on original input, shared with Python's CustomTypes. */
+export class CustomTypes {
+    /** Dynamically registered names, e.g. ct.no_pointer. */
+    [name: string]: any;
+    register(name: string, type: StringConstructor | NumberConstructor
+        | 'string' | 'integer' | 'number' | { [key: string]: JsonValue },
+        annotation: { [key: string]: JsonValue }): CustomTypeReference;
+    validate(name: string, value: unknown): true;
+    resolve(name: string, path?: string): CustomTypeReference & {
+        inputConstraint: true; test(value: unknown): boolean;
+    };
+    toJSON(): CustomTypeCatalog;
+    static fromJSON(catalog: CustomTypeCatalog): CustomTypes;
+}
+
+/** A grammar document in the `builder_grammar` 1.1 or 1.2 format. */
 export interface GrammarDocument {
     /** Format marker: `{ name: 'builder_grammar', version: '1.1' }`. */
     document_format: { name: string; version: string };
@@ -24,6 +42,8 @@ export interface GrammarDocument {
     abstracts: { [name: string]: { [key: string]: JsonValue } };
     /** Element declarations, keyed by tag name. */
     elements: { [name: string]: { [key: string]: JsonValue } };
+    /** Optional in 1.2; forbidden in 1.1. */
+    custom_types?: CustomTypeCatalog;
 }
 
 /** Attributes of a source node: a plain record of values. */
@@ -363,6 +383,8 @@ export class BuilderBase {
      * @throws {Error} When the element is unknown or a value is invalid.
      */
     validateNodeValues(tag: string, value: unknown, attrs?: SourceAttributes): true;
+    /** Recheck registered input constraints on an existing Source node. */
+    validateCustomTypes(node: SourceBagNode): void;
     /**
      * Validate a source node, including its children when it has any.
      *

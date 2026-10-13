@@ -20,7 +20,7 @@
  */
 import { Bag, BagResolver } from '@genrojs/bag';
 import { SourceBag, SourceBagNode, createSourceHandle, sourceTarget, VALUE } from './source-bag.js';
-import { parseGrammarDocument, resolveGrammarDeclarations, validateElementValues } from './grammar-loader.js';
+import { parseGrammarDocument, resolveGrammarDeclarations, validateElementValues, validateCustomTypeValues } from './grammar-loader.js';
 import { Collection } from './collection.js';
 import { XmlRenderer } from './renderer/xml.js';
 import BASE_GRAMMAR from './collections/base.json' with { type: 'json' };
@@ -269,6 +269,12 @@ export class BuilderBase {
     }
 
     /** Public value check used by renderers after removing framework attrs. */
+    validateCustomTypes(node) {
+        const host = node.parentBag?.parentNode?.builder || node.parentBag?._builder;
+        const owner = host && host !== this && host.schema[node.nodeTag]?._meta?.subbuilder ? host : this;
+        validateCustomTypeValues(node.nodeTag, owner.schema[node.nodeTag], node.value, node.getAttr() || {});
+    }
+
     validateNodeValues(tag, value, attrs = {}) {
         const actual = this.schemaTag(tag);
         if (!actual) throw new Error(`unknown element '${tag}'`);
@@ -440,6 +446,7 @@ export class BuilderBase {
             for (const node of bag.getNodes()) {
                 const path = prefix ? `${prefix}.${node.label}` : node.label;
                 const builder = node.builder;
+                builder.validateCustomTypes(node);
                 const info = builder.schema[node.nodeTag];
                 if (info && !node._getMeta('data_element,subbuilder,component').some(Boolean)) {
                     const children = node.value instanceof SourceBag ? node.value.getNodes().map(n => n.nodeTag) : [];
@@ -475,6 +482,7 @@ export class BuilderBase {
 
     /** Resolve the pointers/values a node carries → [runtimeValue, runtimeAttrs]. */
     runtimeValues(node) {
+        node.builder.validateCustomTypes(node);
         const resolved = new Map();
         const carried = {};
         const isDataElement = node._getMeta('data_element');

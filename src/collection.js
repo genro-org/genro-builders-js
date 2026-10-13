@@ -9,6 +9,10 @@
  *  keeps the earlier one. */
 function merge(current, incoming, path = []) {
     if (incoming === null) return structuredClone(current);
+    if (path.length === 2 && path[0] === 'custom_types' && current !== undefined) {
+        if (!equalJson(current, incoming)) throw new TypeError(`conflicting custom type '${path[1]}'`);
+        return structuredClone(current);
+    }
     if (path.length === 2 && ['abstracts', 'elements'].includes(path[0])) return structuredClone(incoming);
     if (record(current) && record(incoming)) {
         const result = structuredClone(current);
@@ -20,6 +24,12 @@ function merge(current, incoming, path = []) {
         return result;
     }
     return structuredClone(incoming);
+}
+function equalJson(a, b) {
+    if (Object.is(a, b)) return true;
+    if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => equalJson(x, b[i]));
+    if (record(a) && record(b)) return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(k => Object.hasOwn(b, k) && equalJson(a[k], b[k]));
+    return false;
 }
 function record(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -37,15 +47,18 @@ export class Collection {
     constructor(document) {
         json(document);
         const keys = ['document_format', 'grammar', 'abstracts', 'elements'];
-        if (!record(document) || Object.keys(document).length !== keys.length || keys.some(k => !Object.hasOwn(document, k))) {
+        if (!record(document) || Object.keys(document).some(k => ![...keys, 'custom_types'].includes(k)) || keys.some(k => !Object.hasOwn(document, k))) {
             throw new TypeError('collection requires document_format, grammar, abstracts and elements');
         }
         const format = document.document_format;
-        if (!record(format) || Object.keys(format).length !== 2 || format.name !== 'builder_grammar' || format.version !== '1.1') {
-            throw new TypeError('expected builder_grammar version 1.1');
+        if (!record(format) || Object.keys(format).length !== 2 || format.name !== 'builder_grammar' || !['1.1', '1.2'].includes(format.version)) {
+            throw new TypeError('expected builder_grammar version 1.1 or 1.2');
         }
         for (const section of ['grammar', 'abstracts', 'elements']) {
             if (!record(document[section])) throw new TypeError(`${section} must be an object`);
+        }
+        if (Object.hasOwn(document, 'custom_types') && (format.version !== '1.2' || !record(document.custom_types))) {
+            throw new TypeError('custom_types requires an object catalog and version 1.2');
         }
         this.#document = structuredClone(document);
     }
@@ -54,7 +67,9 @@ export class Collection {
      *  and a null metadata value preserves the earlier one. */
     update(document) {
         const incoming = new Collection(document);
-        this.#document = merge(this.#document, incoming.#document);
+        const merged = merge(this.#document, incoming.#document);
+        if (this.#document.document_format.version === '1.2' || incoming.#document.document_format.version === '1.2') merged.document_format.version = '1.2';
+        this.#document = merged;
         return this;
     }
     /** Export independent JSON data, not a second representation of the grammar. */

@@ -25,7 +25,7 @@ children. Node API names take precedence over grammar names; the dialect prefix
 
 `BuilderClass.defineGrammar(document)` declares the class grammar in a static
 block. `builder.loadGrammar(document, {replace:false})` loads an instance grammar.
-Both require the `builder_grammar` 1.1 document envelope with
+Both accept the `builder_grammar` 1.1 or 1.2 document envelope with
 `document_format`, `grammar`, `abstracts` and `elements`. No shorthand schema or
 JavaScript decorator API is supplied. The bundled JSON documents are working
 examples of the format; do not maintain duplicate native tag lists.
@@ -50,7 +50,8 @@ See [collection examples](030-collections.md).
 Names are case-insensitive for dispatch and case-only collisions are rejected.
 Loading does not rename the builder instance. Validation checks signatures, types,
 parent placement and maximum child counts during authoring. `validateSource()`
-reports missing minimum counts explicitly; rendering does not imply validation.
+reports missing minimum counts explicitly; registered input constraints are also
+checked there and before runtime resolution. Other validation is not implied by rendering.
 
 `registerBuilder(Class)` binds a dialect name to a BuilderBase subclass;
 `getBuilderClass(name)` looks it up. This registry selects executable dialect
@@ -138,3 +139,72 @@ class CustomerPage extends HtmlBuilder {
 - On the TYTX wire the Source travels as `::X` with `__cls` set to the name
   under which its class is registered in the subtype dictionary of `X`. An
   unregistered subclass cannot be serialized.
+
+
+## Named custom types
+
+`CustomTypes` reads the catalog exported by Python, without Python imports:
+
+```javascript
+import { CustomTypes } from '@genrojs/builders';
+
+const ct = CustomTypes.fromJSON(document.custom_types);
+ct.validate('no_pointer', 'details');
+// ct.no_pointer is {kind: 'custom', name: 'no_pointer'}.
+```
+
+Use `ct.no_pointer` as a parameter's `annotation` descriptor. The grammar loader
+resolves it against the document's `custom_types` catalog. Direct JS registration
+produces the same JSON as Python:
+
+```javascript
+const ct = new CustomTypes();
+ct.register('no_pointer', String, {
+    kind: 'regex', pattern: String.raw`(?![\^=])[\s\S]*`, flags: 0,
+});
+ct.register('positive', 'integer', {
+    kind: 'range', ge: 1, le: null, gt: null, lt: null,
+});
+const catalog = ct.toJSON();
+```
+
+String/`'string'`, Number/`'number'`, `'integer'`, or a portable
+base descriptor can be used as the second argument. Number means a finite float;
+use `'integer'` when integers are required. The third argument is a portable Regex
+or Range descriptor. Portable pairs are Regex/string and Range/integer or finite
+number; other base/validator combinations are rejected. Names must be public ASCII identifiers, excluding Python
+keywords and registry/prototype API names. Duplicate names and unresolved
+references are errors. Registered attributes are read-only. As with other JS
+objects, an absent property reads as `undefined`; `resolve` and `validate` reject
+unknown names explicitly.
+
+Definitions use `{kind:'annotated', base, metadata:[validator]}`. The grammar
+carries `custom_types` plus `{kind:'custom', name}` parameter references, and
+uses version **1.2**. The loader continues to accept legacy **1.1** documents.
+`Collection` merges catalogs without silently replacing a conflicting definition
+and keeps version 1.2 when composing with legacy documents. Definitions cannot
+reference another named type. Dynamically registered properties have limited
+static completion support.
+
+Named constraints validate **original input**, not a pointer's resolved value.
+`no_pointer` rejects leading `^`, `=` and `==`, while allowing empty and multiline
+literal strings. Plain string contracts retain their existing behavior.
+Checks run during authoring, before `runtimeValues`, before `node.pointers()`
+exposes subscriptions, and during `validateSource()`, including after Source
+serialization or editing. The Source must be bound to its owning builder.
+A handwritten `remote(method)` helper must declare the constraint on its resulting
+`remote` Source attribute; validating only its argument cannot protect serialized
+Source. Gramlot helper/runtime alignment remains in the Gramlot project.
+
+Regex matching covers the whole string. Unicode-sensitive classes (`\w`, `\d`,
+standalone `\s` and their complements), IGNORECASE and Python-specific constructs
+are rejected. Use explicit character ranges. The exact `[\s\S]` idiom is allowed
+because it matches every character in both engines. Word boundaries,
+backreferences, inline flags and possessive quantifiers are rejected. Dot and
+anchors retain Python's LF line semantics, including for CR/U+2028/U+2029 input.
+Python callbacks cannot be
+serialized as JavaScript validators.
+
+The shared test fixture `tests/fixtures/custom-types.json` is generated from
+Python's `tests/test_custom_types.py::ContactBuilder`; Python checks that its
+export matches the fixture and JS tests load that same document.
