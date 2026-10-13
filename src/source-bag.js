@@ -79,6 +79,7 @@ export class SourceBagNode extends BagNode {
     /** Reactive pointers carried by this node as [attrname, pointer].
      *  attrname "" for a pointer in node.value. Only `^` (reactive). */
     pointers() {
+        this.builder.validateCustomTypes(this);
         const result = [];
         for (const [attrname, v] of Object.entries(this.getAttr() || {})) {
             if (this.pointerType(v) === '^') {

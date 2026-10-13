@@ -16,3 +16,5 @@ export { SvgBuilder } from './builder/svg.js';
 export { resolveRenderTag } from './utils.js';
 
 export { Collection } from './collection.js';
+
+export { CustomTypes } from './grammar-loader.js';

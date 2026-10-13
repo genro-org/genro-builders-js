@@ -26,10 +26,33 @@ function jsonValue(value, path) {
     fail(path, 'must be lossless JSON data');
 }
 
-function annotation(desc, path, nested = false) {
+// Python's dot/anchors use LF as the line boundary. JS additionally treats
+// CR, U+2028 and U+2029 as line terminators. Translate outside character
+// classes rather than silently changing the contract for those inputs.
+function pythonRegexPattern(pattern, flags) {
+    let result = '', inClass = false;
+    for (let i = 0; i < pattern.length; i++) {
+        const ch = pattern[i];
+        if (ch === '\\') { result += ch + (pattern[++i] ?? ''); continue; }
+        if (ch === '[') inClass = true;
+        if (!inClass && ch === '.' && !(flags & 16)) result += '[^\\n]';
+        else if (!inClass && ch === '^' && (flags & 8)) result += '(?:^|(?<=\\n))';
+        else if (!inClass && ch === '$') result += flags & 8 ? '(?=\\n|(?![\\s\\S]))' : '(?=\\n?(?![\\s\\S]))';
+        else result += ch;
+        if (ch === ']') inClass = false;
+    }
+    return result;
+}
+
+function annotation(desc, path, nested = false, customTypes = null) {
     if (desc === null) return null;
     exactKeys(desc, ['kind', 'module', 'name', 'origin', 'arguments', 'items', 'values', 'base', 'metadata', 'pattern', 'flags', 'ge', 'le', 'gt', 'lt', 'value'], ['kind'], path);
     switch (desc.kind) {
+    case 'custom': {
+        exactKeys(desc, ['kind', 'name'], ['kind', 'name'], path);
+        if (!customTypes) fail(path, 'custom references require a catalog; nested catalog references are unsupported');
+        return customTypes.resolve(desc.name, path);
+    }
     case 'any': return { ...desc, test: _v => true };
     case 'type': {
         if (typeof desc.module !== 'string' || typeof desc.name !== 'string') fail(path, 'type requires string module/name');
@@ -39,8 +62,8 @@ function annotation(desc, path, nested = false) {
     }
     case 'union': {
         if (!Array.isArray(desc.items) || !desc.items.length) fail(path, 'union items must be non-empty');
-        const items = desc.items.map((v, i) => annotation(v, `${path}.items[${i}]`, true));
-        return { ...desc, items, test: v => items.some(x => x.test && x.test(v)) };
+        const items = desc.items.map((v, i) => annotation(v, `${path}.items[${i}]`, true, customTypes));
+        return { ...desc, items, inputConstraint: items.some(x => x.inputConstraint), test: v => items.some(x => x.test && x.test(v)) };
     }
     case 'literal':
         if (!Array.isArray(desc.values)) fail(path, 'literal values must be an array');
@@ -48,9 +71,10 @@ function annotation(desc, path, nested = false) {
         return { ...desc, test: v => desc.values.some(x => Object.is(x, v)) };
     case 'annotated': {
         if (!Array.isArray(desc.metadata)) fail(path, 'annotated metadata must be an array');
-        const base = annotation(desc.base, `${path}.base`, true);
-        const metadata = desc.metadata.map((v, i) => annotation(v, `${path}.metadata[${i}]`, true));
-        return { ...desc, base, metadata, test: v => base.test(v) && metadata.every(x => !x.test || x.test(v)) };
+        if (desc.metadata.some(v => !['regex', 'range', 'value'].includes(v?.kind))) fail(path, 'unsupported annotation metadata kind');
+        const base = annotation(desc.base, `${path}.base`, true, customTypes);
+        const metadata = desc.metadata.map((v, i) => annotation(v, `${path}.metadata[${i}]`, true, customTypes));
+        return { ...desc, base, metadata, inputConstraint: base.inputConstraint, test: v => base.test(v) && metadata.every(x => !x.test || x.test(v)) };
     }
     case 'range': {
         for (const key of ['ge', 'le', 'gt', 'lt']) if (!Object.hasOwn(desc, key)) fail(path, `range missing '${key}'`);
@@ -62,9 +86,9 @@ function annotation(desc, path, nested = false) {
         const unsupported = desc.flags & ~(2 | 8 | 16 | 32); // IGNORECASE, MULTILINE, DOTALL, UNICODE
         if (unsupported) fail(path, `unsupported Python regex flags ${unsupported}`);
         if (desc.flags & 2) fail(path, 'IGNORECASE is not portable across Python and JavaScript Unicode rules');
-        if (/\\[AZwWdDsS]|\(\?P[<=!]|\(\?\(|\(\?>/.test(desc.pattern)) fail(path, 'regex uses a non-portable construct or character class');
-        let flags = 'uy'; if (desc.flags & 8) flags += 'm'; if (desc.flags & 16) flags += 's';
-        let re; try { re = new RegExp(`(?:${desc.pattern})(?![\\s\\S])`, flags); } catch (error) { fail(path, `invalid portable regex: ${error.message}`); }
+        if (/\\[AZzUwWdDsSabBN0-9]|\(\?P[<=!]|\(\?\(|\(\?>|\(\?#|\(\?[aiLmsux-]|[+*?}]\+|\{,/.test(desc.pattern.replaceAll(String.raw`[\s\S]`, "."))) fail(path, 'regex uses a non-portable construct or character class');
+        let flags = 'uy'; if (desc.flags & 16) flags += 's';
+        let re; try { re = new RegExp(`(?:${pythonRegexPattern(desc.pattern, desc.flags)})(?![\\s\\S])`, flags); } catch (error) { fail(path, `invalid portable regex: ${error.message}`); }
         return { ...desc, test: v => {
             if (typeof v !== 'string') return false;
             re.lastIndex = 0;
@@ -73,14 +97,14 @@ function annotation(desc, path, nested = false) {
     }
     case 'value': jsonValue(desc.value, `${path}.value`); return { ...desc };
     case 'generic': {
-        const origin = annotation(desc.origin, `${path}.origin`, true);
+        const origin = annotation(desc.origin, `${path}.origin`, true, customTypes);
         if (desc.origin?.kind !== 'type' || desc.origin.module !== 'builtins'
             || !['list', 'dict', 'tuple', 'set'].includes(desc.origin.name)) {
             fail(path, 'only list, dict, tuple and set generic origins are supported');
         }
         if (!Array.isArray(desc.arguments)) fail(path, 'generic arguments must be an array');
-        const args = desc.arguments.map((v, i) => annotation(v, `${path}.arguments[${i}]`, true));
-        return { ...desc, origin, arguments: args, test: v => origin.test(v) && genericItems(desc.origin, args, v) };
+        const args = desc.arguments.map((v, i) => annotation(v, `${path}.arguments[${i}]`, true, customTypes));
+        return { ...desc, origin, arguments: args, inputConstraint: args.some(x => x.inputConstraint), test: v => origin.test(v) && genericItems(desc.origin, args, v) };
     }
     case 'arguments':
         fail(path, 'Callable argument-list descriptors are not supported by Python validation');
@@ -134,7 +158,7 @@ function parseParents(spec, path) {
     return result;
 }
 
-function parameters(value, path) {
+function parameters(value, path, customTypes) {
     if (value === null) return null;
     exactKeys(value, ['parameters', 'accepts_var_keyword', 'accepts_var_positional'], [], path);
     const params = value.parameters ?? [];
@@ -152,7 +176,7 @@ function parameters(value, path) {
         if (p.has_default !== Object.hasOwn(p, 'default')) fail(pp, 'default presence must equal has_default'); if (p.has_default) jsonValue(p.default, `${pp}.default`);
         foundVarKeyword ||= p.kind === 'var_keyword';
         foundVarPositional ||= p.kind === 'var_positional';
-        return { ...p, annotation: annotation(p.annotation, `${pp}.annotation`) };
+        return { ...p, annotation: annotation(p.annotation, `${pp}.annotation`, false, customTypes) };
     });
     if (foundVarKeyword !== value.accepts_var_keyword
         || foundVarPositional !== value.accepts_var_positional) {
@@ -161,7 +185,7 @@ function parameters(value, path) {
     return { ...value, parameters: parsed };
 }
 
-function declaration(value, path, isElement) {
+function declaration(value, path, isElement, customTypes) {
     const keys = ['doc', 'sub_tags', 'parent_tags', 'inherits_from', 'ns', 'attributes', ...(isElement ? ['node_label', 'collection_key'] : []), '_meta'];
     exactKeys(value, keys, [], path);
     value = { ...Object.fromEntries(keys.map(k => [k, null])), ...value };
@@ -169,7 +193,7 @@ function declaration(value, path, isElement) {
     if (value._meta !== null) { if (!plainObject(value._meta)) fail(path, '_meta must be object or null'); jsonValue(value._meta, `${path}._meta`); }
     parseCardinality(value.sub_tags, `${path}.sub_tags`);
     parseParents(value.parent_tags, `${path}.parent_tags`);
-    return { ...value, attributes: parameters(value.attributes, `${path}.attributes`) };
+    return { ...value, attributes: parameters(value.attributes, `${path}.attributes`, customTypes) };
 }
 function parents(value) { return value ? value.split(',').map(x => x.trim()).filter(Boolean) : []; }
 function inherit(base, own) {
@@ -219,26 +243,28 @@ export function resolveGrammarDeclarations({ abstracts: rawAbstracts = {}, eleme
 }
 
 export function parseGrammarDocument(doc) {
-    exactKeys(doc, ['document_format', 'grammar', 'abstracts', 'elements'], ['document_format', 'grammar', 'abstracts', 'elements'], 'grammar document');
+    exactKeys(doc, ['document_format', 'grammar', 'abstracts', 'elements', 'custom_types'], ['document_format', 'grammar', 'abstracts', 'elements'], 'grammar document');
     exactKeys(doc.document_format, ['name', 'version'], ['name', 'version'], 'document_format');
-    if (doc.document_format.name !== 'builder_grammar' || doc.document_format.version !== '1.1') fail('document_format', 'expected builder_grammar version 1.1');
+    if (doc.document_format.name !== 'builder_grammar' || !['1.1', '1.2'].includes(doc.document_format.version)) fail('document_format', 'expected builder_grammar version 1.1 or 1.2');
     exactKeys(doc.grammar, ['name', 'version', 'title', 'description'], ['name', 'version', 'title', 'description'], 'grammar');
     if (typeof doc.grammar.name !== 'string' || !doc.grammar.name) fail('grammar.name', 'must be non-empty string');
     for (const key of ['version', 'title', 'description']) if (doc.grammar[key] !== null && typeof doc.grammar[key] !== 'string') fail(`grammar.${key}`, 'must be string or null');
     if (!plainObject(doc.abstracts) || !plainObject(doc.elements)) fail('grammar document', 'abstracts/elements must be objects');
+    if (Object.hasOwn(doc, 'custom_types') && doc.document_format.version !== '1.2') fail('custom_types', 'requires version 1.2');
+    const customTypes = CustomTypes.fromJSON(doc.custom_types ?? {});
     const rawAbstracts = {};
     for (const [name, value] of Object.entries(doc.abstracts)) {
         if (!name || name.startsWith('_')) {
             fail('abstracts', `invalid public name '${name}'`);
         }
-        rawAbstracts[name] = declaration(value, `abstracts.${name}`, false);
+        rawAbstracts[name] = declaration(value, `abstracts.${name}`, false, customTypes);
     }
     const rawElements = {};
     for (const [name, value] of Object.entries(doc.elements)) {
         if (!name || name.startsWith('_')) {
             fail('elements', `invalid public name '${name}'`);
         }
-        rawElements[name] = declaration(value, `elements.${name}`, true);
+        rawElements[name] = declaration(value, `elements.${name}`, true, customTypes);
     }
     return {
         grammar: structuredClone(doc.grammar),
@@ -261,5 +287,75 @@ export function validateElementValues(tag, spec, value, attrs) {
         const present = Object.hasOwn(supplied, p.name);
         if (!present && !p.has_default) fail(tag, `missing required ${p.role} '${p.name}'`);
         if (present && p.annotation !== null && (!p.annotation.test || !p.annotation.test(supplied[p.name]))) fail(tag, `invalid value for ${p.role} '${p.name}'`);
+    }
+}
+
+/** Named input constraints shared with Python's CustomTypes registry. */
+export class CustomTypes {
+    #definitions = new Map();
+    #compiled = new Map();
+
+    register(name, type, constraint) {
+        const bases = new Map([[String, 'str'], [Number, 'float'],
+            ['string', 'str'], ['integer', 'int'], ['number', 'float']]);
+        const base = bases.has(type) ? { kind: 'type', module: 'builtins', name: bases.get(type) } : type;
+        return this.#register(name, { kind: 'annotated', base, metadata: [constraint] });
+    }
+
+    #register(name, definition) {
+        if (typeof name !== 'string' || !/^[A-Za-z][A-Za-z0-9_]*$/.test(name) || name in this
+            || ['to_dict', 'from_dict'].includes(name) || PYTHON_KEYWORDS.has(name)) fail('custom_types', `invalid, reserved or duplicate name '${name}'`);
+        exactKeys(definition, ['kind', 'base', 'metadata'], ['kind', 'base', 'metadata'], `custom_types.${name}`);
+        if (definition.kind !== 'annotated' || !Array.isArray(definition.metadata)
+            || definition.metadata.length !== 1 || !['regex', 'range'].includes(definition.metadata[0]?.kind)) {
+            fail(`custom_types.${name}`, 'requires an annotated base with one Regex or Range validator');
+        }
+        const expected = definition.metadata[0].kind === 'regex' ? ['str'] : ['int', 'float'];
+        if (definition.base?.kind !== 'type' || definition.base.module !== 'builtins'
+            || !expected.includes(definition.base.name)) {
+            fail(`custom_types.${name}`, 'portable Regex requires str; portable Range requires int or float');
+        }
+        jsonValue(definition, `custom_types.${name}`);
+        const copy = structuredClone(definition);
+        const compiled = annotation(copy, `custom_types.${name}`);
+        const reference = Object.freeze({ kind: 'custom', name });
+        Object.defineProperty(this, name, { value: reference, enumerable: true });
+        this.#definitions.set(name, copy);
+        this.#compiled.set(name, { ...reference, inputConstraint: true, test: compiled.test });
+        return reference;
+    }
+
+    resolve(name, path = 'custom_types') {
+        if (!this.#compiled.has(name)) fail(path, `unknown custom type '${name}'`);
+        return { ...this.#compiled.get(name) };
+    }
+
+    validate(name, value) {
+        if (!this.resolve(name).test(value)) fail(`custom_types.${name}`, 'invalid input value');
+        return true;
+    }
+
+    toJSON() { return structuredClone(Object.fromEntries(this.#definitions)); }
+
+    static fromJSON(catalog) {
+        if (!plainObject(catalog)) fail('custom_types', 'must be an object');
+        const registry = new CustomTypes();
+        for (const [name, definition] of Object.entries(catalog)) registry.#register(name, definition);
+        return registry;
+    }
+}
+
+const PYTHON_KEYWORDS = new Set('False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield'.split(' '));
+
+/** Only named input constraints: do not revalidate all legacy runtime attrs. */
+export function validateCustomTypeValues(tag, spec, value, attrs) {
+    const signature = spec?.attributes;
+    if (!signature) return;
+    for (const p of signature.parameters) {
+        if (!p.annotation?.inputConstraint || p.role === 'framework'
+            || ['var_keyword', 'var_positional'].includes(p.kind)) continue;
+        const supplied = p.role === 'value' ? value : attrs[p.name];
+        if (supplied === undefined) continue;
+        if (!p.annotation.test(supplied)) fail(tag, `invalid input for '${p.name}' (custom type)`);
     }
 }
