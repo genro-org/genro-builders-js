@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.2 — 2026-10-14
+
+- Correct JSR dependency specifiers to verified caret ranges (Bag ^0.11.0,
+  TYTX ^0.16.2), with explicit owner approval limited to JSR. Its publisher
+  rejects both `>=` and wildcard constraints. npm keeps minimum-only ranges.
+- Supersede the partially published 0.5.1: npm succeeded, JSR rejected its config.
+  No runtime changes.
+
 ## 0.5.1 — 2026-10-14
 
 - Require Bag >=0.11.0 for recursive population and current Python/JavaScript
