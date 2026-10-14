@@ -4,7 +4,7 @@ Build typed Source trees from JSON grammars and render static HTML, SVG or XML.
 The generic renderer also supports dialect-defined object output. This package
 has no DOM, browser subscriptions, server or database dependencies.
 
-Version **0.4.1** is published on npm and JSR with the Bag 0.10 contract. Python parity is bounded by
+Version **0.5.1** targets npm and JSR with the Bag 0.11 contract. Python parity is bounded by
 [documented differences](docs/020-python-differences.md). Recipes are not implemented.
 A builder declares the SourceBag class of its Source in `static _sourceClass`
 ([Source class](docs/005-authoring.md#gbj-005-025)).
@@ -28,10 +28,13 @@ The same package is published on two registries:
 - JSR: `npx jsr add @genro/builders` (or `bunx jsr add`), then import from
   `@genro/builders`.
 
-From a local checkout, run `npm ci` and `npm test`.
+From a local checkout, run `npm install --no-package-lock` and `npm test`.
 Node.js 22 or later and Bun are the supported server runtimes. First-party
-dependencies use compatible caret ranges; the committed `package-lock.json`
-fixes the versions CI installs.
+dependencies use verified minimum versions without upper bounds. Setup and CI
+resolve current releases without a lockfile; use `npm update --no-package-lock`
+to refresh an existing installation. Bag 0.11.0 provides recursive population and
+the current Python/JavaScript TYTX format. Consumers must resolve one shared Bag
+class and TYTX registry; an older nested Bag copy cannot share the same suffix.
 The source imports Bag and TYTX as `@genrojs/bag` and `@genrojs/tytx`, the npm
 names; `jsr.json` maps them to `jsr:@genro/bag` and `jsr:@genro/tytx`. Each
 registry's package therefore depends on one Bag class and one TYTX registry

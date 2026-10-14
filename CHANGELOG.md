@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1 — 2026-10-14
+
+- Require Bag >=0.11.0 for recursive population and current Python/JavaScript
+  TYTX interchange, preventing a nested Bag 0.10 copy and duplicate X registration.
+- Use minimum-only first-party dependency ranges in npm and JSR (TYTX >=0.16.2).
+- Remove the dependency lock and refresh setup/CI installation instructions.
+- Verified with all 150 Builder tests and the consuming Gramlot suites:
+  580 JavaScript tests, 139 Python tests plus 254 subtests, and eight Chromium
+  runtime checks. No Builder runtime changes.
+
 ## 0.5.0 — 2026-10-13
 
 - Add the shared `CustomTypes` registry, direct JS registration, and grammar 1.2
