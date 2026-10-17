@@ -74,3 +74,22 @@ calls on the same class. Child class changes do not mutate parent class grammar.
 - Python runtime include_components rendering already fails to find an
   instance-only component method (confirmed before these changes). Declaration
   preservation is checked here; that renderer defect is not repaired in this port.
+
+
+## TYTX dtype annotations
+
+Portable signatures may use `{"kind": "dtype", "dtype": "D"}`. The code is the
+TYTX type identity (for example T, L, R, B, N, D, H, DHZ, NN or a registered custom
+code). Unknown codes fail loading. Python resolves through `SUFFIX_TO_TYPE`; JS
+uses `getRegisteredType` and the public Decimal predicate for N. There is no
+implicit string parsing or numeric coercion. Existing annotation forms remain
+readable. A union combines dtype branches; nullability is an NN branch. JSON
+defaults retain the existing finite-JSON contract: dtype is an annotation, not an
+alternate encoder for literal defaults.
+
+Python's exporter emits dtype for registered domain annotation classes such as
+Decimal/date/time/datetime, while existing primitive annotation descriptors retain
+their established representation. Component producers can emit dtype for all
+scalar signatures. In JS, D/H/DHZ share Date as their carrier; semantic civil-date
+or civil-time constraints belong to the consuming editor. N accepts the current
+TYTX Decimal backend without converting it to a Number.

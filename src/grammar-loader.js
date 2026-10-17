@@ -1,3 +1,4 @@
+import {getRegisteredType, isDecimal} from '@genrojs/tytx';
 // Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -46,12 +47,33 @@ function pythonRegexPattern(pattern, flags) {
 
 function annotation(desc, path, nested = false, customTypes = null) {
     if (desc === null) return null;
-    exactKeys(desc, ['kind', 'module', 'name', 'origin', 'arguments', 'items', 'values', 'base', 'metadata', 'pattern', 'flags', 'ge', 'le', 'gt', 'lt', 'value'], ['kind'], path);
+    exactKeys(desc, ['kind', 'dtype', 'module', 'name', 'origin', 'arguments', 'items', 'values', 'base', 'metadata', 'pattern', 'flags', 'ge', 'le', 'gt', 'lt', 'value'], ['kind'], path);
     switch (desc.kind) {
     case 'custom': {
         exactKeys(desc, ['kind', 'name'], ['kind', 'name'], path);
         if (!customTypes) fail(path, 'custom references require a catalog; nested catalog references are unsupported');
         return customTypes.resolve(desc.name, path);
+    }
+    case 'dtype': {
+        exactKeys(desc, ['kind', 'dtype'], ['kind', 'dtype'], path);
+        const code = desc.dtype;
+        if (typeof code !== 'string') fail(path, 'dtype must be a string');
+        const Type = getRegisteredType(code);
+        if (!Type && code !== 'NN') fail(path, `unknown dtype '${code}'`);
+        const test = value => {
+            if (code === 'NN') return value === null;
+            if (code === 'N') return isDecimal(value) && !['NaN', 'Infinity', '-Infinity'].includes(value.toString());
+            if (Type === Number) return typeof value === 'number' && Number.isFinite(value)
+                && (code !== 'L' || Number.isInteger(value));
+            if (Type === String) return typeof value === 'string';
+            if (Type === Boolean) return typeof value === 'boolean';
+            // D/H/DHZ share a Date carrier; the declaration supplies the semantic type.
+            if (Type === Date) return value instanceof Date && Number.isFinite(value.getTime());
+            if (Type === Object) return plainObject(value)
+                && [Object.prototype, null].includes(Object.getPrototypeOf(value));
+            return value instanceof Type;
+        };
+        return {...desc, test};
     }
     case 'any': return { ...desc, test: _v => true };
     case 'type': {

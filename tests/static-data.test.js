@@ -88,15 +88,15 @@ test('static components are instance-owned and compose with loaded grammar', () 
     assert.equal(page.source.getNodes()[0].nodeTag, 'card');
 });
 
-test('templates consume inputs, preserve source and report missing names', () => {
+test('explicit templates keep inputs and preserve source', () => {
     const builder = new StaticPage();
     builder.data.setItem('width', 120);
-    const node = builder.root.output('${label}', { label: '=missing', w: '^width', width: '${w}px' });
-    assert.deepEqual(builder.runtimeValues(node), ['${label}', { label: null, width: '120px' }]);
+    const node = builder.root.output('${label}', { label: '=missing', w: '^width', width: '^width:{}px' });
+    assert.deepEqual(builder.runtimeValues(node), ['${label}', { label: null, w: 120, width: '120px' }]);
     assert.equal(node.getAttr('w'), '^width');
     builder.data.setItem('width', 200);
     assert.equal(builder.runtimeValues(node)[1].width, '200px');
-    assert.throws(() => builder.runtimeValues(builder.root.output(null, {title: '${missing}'})), /Unknown template parameter/);
+    assert.equal(builder.runtimeValues(builder.root.output(null, {title: '${missing}'}))[1].title, '${missing}');
 });
 
 test('data elements keep ${name} in their attributes as written', () => {
@@ -135,10 +135,10 @@ test('HTML static pointer metadata matches Python without altering default outpu
     const { HtmlBuilder } = await import('../src/index.js');
     const builder = new HtmlBuilder();
     builder.data.setItem('width', 120);
-    builder.root.div(null, {w:'^width', width:'${w}px'});
+    builder.root.div(null, {width:'^width:{}px'});
     builder.root.div('literal', {id:'chosen'});
     assert.equal(builder.render(), '<div style="width: 120px"></div><div id="chosen">literal</div>');
-    const expected = '<div style="width: 120px" id="n1" data-w-pointer="width"></div><div id="chosen">literal</div>';
+    const expected = '<div style="width: 120px" id="n1" data-width-pointer="width"></div><div id="chosen">literal</div>';
     assert.equal(builder.render({includeDatapath:true}), expected);
     assert.equal(builder.render({includeDatapath:true}), expected);
 });
@@ -155,7 +155,7 @@ test('escaped attribute templates and raw HTML preserve literal node values', as
     assert.ok(html.includes('<div><b>${name}</b></div>'));
     assert.ok(html.includes('<div>&lt;b&gt;${name}&lt;/b&gt;</div>'));
     assert.ok(html.includes('<script>const text = `${name}`;</script>'));
-    assert.ok(html.includes('title="${missing} Mario"'));
-    assert.ok(!html.includes(' name='));
+    assert.ok(html.includes(String.raw`title="\${missing} ${'${name}'}"`));
+    assert.ok(html.includes(' name="Mario"'));
     assert.ok(!html.includes('::HTML'));
 });

@@ -198,3 +198,27 @@ test('Python-unsupported Callable generic descriptors are rejected', () => {
         }), {replace:true}), /not supported|only list/);
     }
 });
+
+
+test('portable dtype signatures use the TYTX registry and retain typed values', async () => {
+    const {createDecimal} = await import('@genrojs/tytx');
+    for (const [dtype, value, invalid] of [
+        ['T','hello',7], ['L',7,1.5], ['R',1.5,Infinity], ['B',false,0],
+        ['N',createDecimal('9007199254740993.25'),'12.5'],
+        ['D',new Date('2026-10-16T00:00:00Z'),'2026-10-16'],
+        ['H',new Date('1970-01-01T09:30:00Z'),'09:30'],
+        ['DHZ',new Date('2026-10-16T09:30:00Z'),new Date(NaN)], ['NN',null,undefined]
+    ]) {
+        const doc = document('typed', {item: declaration({attributes: {parameters: [
+            {name:'value',kind:'keyword_only',role:'attribute',annotation:{kind:'dtype',dtype},has_default:false}
+        ], accepts_var_keyword:false,accepts_var_positional:false}})});
+        const b = new BuilderBase().loadGrammar(doc,{replace:true});
+        const node = b.setChild(b.source,'item',null,{value});
+        assert.equal(node.getAttr('value'),value);
+        assert.throws(() => b.setChild(b.source,'item',null,{value:invalid}), /invalid value/);
+    }
+    const bad = document('bad', {item: declaration({attributes:{parameters:[
+        {name:'value',kind:'keyword_only',role:'attribute',annotation:{kind:'dtype',dtype:'UNKNOWN'},has_default:false}
+    ],accepts_var_keyword:false,accepts_var_positional:false}})});
+    assert.throws(() => new BuilderBase().loadGrammar(bad), /unknown dtype/);
+});

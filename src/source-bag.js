@@ -1,3 +1,4 @@
+import {pointerTransform} from './pointers.js';
 // Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 /**
  * Builder-aware Bag and BagNode — JS port of source_bag.py.
@@ -70,7 +71,7 @@ export class SourceBagNode extends BagNode {
 
     /** Return "^" (reactive), "=" (passive) or null. */
     pointerType(v) {
-        if (typeof v === 'string' && (v[0] === '^' || v[0] === '=')) {
+        if (typeof v === 'string' && (v[0] === '^' || v[0] === '=') && !v.startsWith('==')) {
             return v[0];
         }
         return null;
@@ -83,11 +84,11 @@ export class SourceBagNode extends BagNode {
         const result = [];
         for (const [attrname, v] of Object.entries(this.getAttr() || {})) {
             if (this.pointerType(v) === '^') {
-                result.push([attrname, v]);
+                result.push([attrname, v.split(':', 1)[0]]);
             }
         }
         if (this.pointerType(this.value) === '^') {
-            result.push(['', this.value]);
+            result.push(['', this.value.split(':', 1)[0]]);
         }
         return result;
     }
@@ -110,14 +111,14 @@ export class SourceBagNode extends BagNode {
     absDatapath(path) {
         const raw = path;
         if (this.pointerType(path)) {
-            path = path.slice(1);
+            path = (pointerTransform(path)?.pointer ?? path).slice(1);
         }
         let attr = null;
         if (path.includes('?')) {
             [path, attr] = path.split('?', 2);
         }
         if (path.startsWith('#')) {
-            return this._resolveSymbolicDatapath(path, raw);
+            return this._finalizeAbsPath(this._resolveSymbolicDatapath(path, raw), attr);
         }
         if (path.startsWith('.')) {
             path = this._composeRelativeDatapath(path, raw);

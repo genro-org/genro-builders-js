@@ -474,6 +474,9 @@ export class BuilderBase {
      * @returns `[runtimeValue, runtimeAttributes]`.
      */
     runtimeValues(node: SourceBagNode): [unknown, SourceAttributes];
+    /** Runtime-owned compiler hook. Static default returns null without executing code. */
+    evaluatePointerExpression(node: SourceBagNode, name: string, raw: string,
+        expression: PointerExpression, inputs: unknown[]): unknown;
     /**
      * Stable per-document identity of a node, assigned on request.
      *
@@ -736,3 +739,13 @@ export class Collection {
     /** Export an independent copy of the composed document as JSON data. */
     toDocument(): GrammarDocument;
 }
+
+
+/** Explicit pointer transform; null for ordinary values, bare pointers and ==. */
+export interface PointerTransform { pointer: string; expression: boolean; body: string; }
+export interface PointerExpression { text: string; slots: string[]; identifiers: Set<string>; }
+export function pointerTransform(value: unknown): PointerTransform | null;
+export function pointerTemplate(body: string, read: (name: string) => unknown): string | null;
+export function pointerExpression(body: string): PointerExpression;
+/** Transitive Source attribute names, recomputed after rebinding. Owns no subscriptions. */
+export function pointerDependencies(node: SourceBagNode, raw: unknown): Set<string>;
