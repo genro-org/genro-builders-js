@@ -82,8 +82,8 @@ carries Data out of the builder subscribes once on `_dataroot` and receives nest
 Both `^path` and `=path` read Data during static rendering; neither subscribes.
 Relative paths use Source datapath scopes. Symbolic anchors include #FORM, #ANCHOR
 and node IDs. `GET`, `SET`, `PUT`, `FIRE` delegate to Bag access/event semantics.
-Templates `${name}` consume their resolved input attributes; null becomes empty
-text and missing inputs raise. Direct synchronous BagResolvers use Bag resolution
+Explicit `^path:{}px` suffixes format typed values; named slots retain their
+attributes. Ordinary `${name}` text is literal. See [migration](035-pointer-suffixes.md). Direct synchronous BagResolvers use Bag resolution
 and caching. `_wdg` on a Data value read overrides authored attributes, excluding
 data-elements and attribute-path reads. No mask formatting occurs in data logic.
 

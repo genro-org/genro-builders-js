@@ -18,3 +18,5 @@ export { resolveRenderTag } from './utils.js';
 export { Collection } from './collection.js';
 
 export { CustomTypes } from './grammar-loader.js';
+
+export {pointerTransform, pointerTemplate, pointerExpression, pointerDependencies} from './pointers.js';

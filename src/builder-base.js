@@ -1,3 +1,4 @@
+import {pointerTransform, pointerDependencies, resolvePointerItems} from './pointers.js';
 // Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 /**
  * BuilderBase — JS port of builder/base.py + _grammar.py.
@@ -483,40 +484,48 @@ export class BuilderBase {
     /** Resolve the pointers/values a node carries → [runtimeValue, runtimeAttrs]. */
     runtimeValues(node) {
         node.builder.validateCustomTypes(node);
-        const resolved = new Map();
+        const current = new Map();
         const carried = {};
+        const items = node.runtimeToEvaluate();
+        const projected = new Set(items.keys());
+        const sourceAttrs = new Map([...Object.entries(node.getAttr()), ...node.fixedAttrItems()]);
+        for (const [key, raw] of [...items]) {
+            if (typeof key !== 'string' || !pointerTransform(raw)) continue;
+            for (const name of pointerDependencies(node, raw)) {
+                if (!items.has(name)) items.set(name, sourceAttrs.get(name));
+            }
+        }
         const isDataElement = node._getMeta('data_element');
-        for (const [k, v] of node.runtimeToEvaluate()) {
+        for (const [k, v] of items) {
             if (v instanceof BagResolver) {
-                resolved.set(k, v.resolve());
+                current.set(k, v.resolve());
                 continue;
             }
-            if (!node.pointerType(v)) {
-                resolved.set(k, v);
+            const pointer = typeof k === 'string' ? (pointerTransform(v)?.pointer ?? v) : v;
+            if (!node.pointerType(pointer)) {
+                current.set(k, typeof k === 'string' && typeof v === 'string' && v.startsWith('==') ? null : v);
                 continue;
             }
-            const absPath = node.absDatapath(v);
-            resolved.set(k, this.data.getItem(absPath));
+            const absPath = node.absDatapath(pointer);
+            current.set(k, this.data.getItem(absPath));
             if (!isDataElement && !absPath.includes('?') && k === VALUE) {
                 const dataNode = this.data.getNode(absPath);
                 if (dataNode) Object.assign(carried, dataNode.getAttr('_wdg'));
             }
         }
-        const consumed = new Set();
-        for (const [k, v] of resolved) {
-            if (isDataElement || k === VALUE || typeof v !== 'string') continue;
-            resolved.set(k, v.replace(/(\\)?\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, (token, escaped, name) => {
-                if (escaped) return token.slice(1);
-                if (!resolved.has(name)) throw new Error(`Unknown template parameter '${name}'`);
-                consumed.add(name);
-                const value = resolved.get(name);
-                return value === null ? '' : String(value);
-            }));
-        }
+        const resolved = resolvePointerItems(items, current, (name, raw, expression, inputs) =>
+            this.evaluatePointerExpression(node, name, raw, expression, inputs));
         const runtimeValue = resolved.get(VALUE);
         resolved.delete(VALUE);
-        for (const name of consumed) resolved.delete(name);
+        for (const name of resolved.keys()) if (!projected.has(name)) resolved.delete(name);
         return [runtimeValue, { ...Object.fromEntries(resolved), ...carried }];
+    }
+
+    /** Consumer hook for := expressions. Static builders intentionally return null.
+     * Override using the runtime's compiler/CSP policy. inputs are typed slot values;
+     * expression.text refers to them through _pointerValues, never textual injection. */
+    evaluatePointerExpression(node, name, raw, expression, inputs) {
+        return null;
     }
 
     /** Stable per-document identity assigned when a renderer requests it. */

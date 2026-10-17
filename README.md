@@ -67,11 +67,12 @@ implied. See [CHANGELOG](CHANGELOG.md) for the local version change.
 Copyright 2025–2026 Softwell S.r.l. Apache-2.0; see LICENSE and NOTICE.
 
 
-## Attribute templates and raw HTML (2026-09-21)
+## Explicit pointer suffixes and raw HTML
 
-`${name}` interpolation applies only to attributes. A preceding backslash,
-`\${name}`, produces literal `${name}` without looking up or consuming `name`.
-Use a raw string or escape the backslash in the authoring language.
+Attributes use explicit `^path:{}px` templates or `^path:=!{}` expressions.
+Ordinary `${name}` text remains literal and consumes no helper attributes.
+Static expressions return null; a consuming runtime supplies its compiler hook.
+
 Node values never interpolate template tokens; Data pointers and resolvers still
 resolve normally. This preserves JavaScript template literals in script content.
 
@@ -79,3 +80,5 @@ For HTML output, a node value ending in `::HTML` emits raw markup and drops the
 suffix. Ordinary text remains escaped. This marker does not enable templates,
 does not sanitize markup and does not change attribute escaping. For example,
 `<b>${name}</b>::HTML` emits `<b>${name}</b>` literally.
+
+See the [pointer suffix and dtype migration guide](docs/035-pointer-suffixes.md).
