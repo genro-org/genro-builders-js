@@ -20,7 +20,7 @@ class StaticPage extends BuilderBase {
         const frame = root.root({ datapath: 'record' });
         frame.dataSetter({ destination: '.seed', value: 3 });
         frame.dataFormula({ destination: 'result', func: 'double', amount: '=input' });
-        frame.output('=result', { node_id: 'answer' });
+        frame.output('=result', { nodeId: 'answer' });
     }
 }
 

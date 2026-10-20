@@ -69,11 +69,11 @@ test('registry rejects a different class under an existing canonical name', () =
 
 test('document identity and detached identity stay owned by the root builder', () => {
     const builder = new AlphaBuilder();
-    const boundary = builder.root.toBeta({ node_id: 'boundary', datapath: 'record' });
+    const boundary = builder.root.toBeta({ nodeId: 'boundary', datapath: 'record' });
     assert.equal(builder.targetId(sourceTarget(boundary)), 'n1');
     const child = boundary.beta();
     assert.equal(sourceTarget(child).absDatapath('#boundary.name'), 'record.name');
-    assert.throws(() => boundary.beta({ node_id: 'boundary' }), /Duplicate node_id/);
+    assert.throws(() => boundary.beta({ nodeId: 'boundary' }), /Duplicate nodeId/);
     assert.equal(sourceTarget(boundary).value.getNodes().length, 1);
 
     const mounted = sourceTarget(boundary).builder;
@@ -228,7 +228,7 @@ test('validation and ID lookup preserve the mounted node dialect', () => {
     }
     const host = new Host();
     const boundary = host.root.mount({ node_label: 'boundary' });
-    const panel = boundary.panel({ node_label: 'panel', node_id: 'panel' });
+    const panel = boundary.panel({ node_label: 'panel', nodeId: 'panel' });
     // The structural boundary is not checked as the child dialect's ordinary mount.
     assert.deepEqual(host.validateSource(), [['boundary.panel', ['leaf']]]);
     const lookedUp = host.nodeById('panel');

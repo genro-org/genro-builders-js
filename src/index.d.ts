@@ -173,7 +173,7 @@ export class SourceBagNode extends BagNode {
     /**
      * Compose the absolute datastore path for `path`, relative to this node.
      * Handles `^`/`=` prefixes, `?attr` suffixes, relative paths, `#parent`
-     * and the symbolic anchors `#FORM`, `#ANCHOR` and `#<node_id>`.
+     * and the symbolic anchors `#FORM`, `#ANCHOR` and `#<nodeId>`.
      *
      * @param path The path to resolve.
      * @throws {Error} When the path cannot be resolved.
@@ -463,7 +463,7 @@ export class BuilderBase {
     /**
      * Source node carrying `nodeId`, wrapped as a fluent handle.
      *
-     * @param nodeId The `node_id` attribute value.
+     * @param nodeId The `nodeId` attribute value.
      * @throws {Error} When no node carries that id.
      */
     nodeById(nodeId: string): SourceHandle;

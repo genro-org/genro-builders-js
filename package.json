@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@genrojs/bag": ">=0.11.0",
-    "@genrojs/tytx": ">=0.16.2"
+    "@genrojs/tytx": ">=0.16.3"
   },
   "publishConfig": {
     "access": "public"

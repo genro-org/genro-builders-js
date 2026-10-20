@@ -22,7 +22,7 @@ export const VALUE = Symbol('value');
 
 /** Structural attributes that never reach the rendered markup. */
 export const META_ATTRS = new Set([
-    '_meta', 'datapath', 'node_id', 'ns', 'form', 'formId', '_anchor', 'updateOn',
+    '_meta', 'datapath', 'nodeId', 'ns', 'form', 'formId', '_anchor', 'updateOn',
 ]);
 
 /** Domain attributes only, using the same keyword spelling in every consumer. */
@@ -164,7 +164,7 @@ export class SourceBagNode extends BagNode {
     /** Resolve a `#SYMBOL[.relpath]` path.
      *  #FORM → nearest ancestor with formId set or form=true;
      *  #ANCHOR → nearest ancestor with `_anchor` present;
-     *  #<id> → node carrying that node_id. The anchor then resolves
+     *  #<id> → node carrying that nodeId. The anchor then resolves
      *  `relpath` relatively (its own datapath chain is consulted). */
     _resolveSymbolicDatapath(path, raw) {
         const s = path.slice(1);
@@ -181,7 +181,7 @@ export class SourceBagNode extends BagNode {
             if (!builder) {
                 throw new Error(`#<id>: cannot resolve ${raw} on a node without builder`);
             }
-            anchor = builder.source.getNodeByAttr('node_id', symbol);
+            anchor = builder.source.getNodeByAttr('nodeId', symbol);
             if (anchor === null || anchor === undefined) {
                 throw new Error(`#<id>: cannot resolve ${raw}`);
             }

@@ -5,7 +5,7 @@
   "exports": "./src/index.js",
   "imports": {
     "@genrojs/bag": "jsr:@genro/bag@^0.11.0",
-    "@genrojs/tytx": "jsr:@genro/tytx@^0.16.2"
+    "@genrojs/tytx": "jsr:@genro/tytx@^0.16.3"
   },
   "publish": {
     "include": [
