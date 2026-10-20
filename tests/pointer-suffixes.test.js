@@ -18,7 +18,7 @@ for(const entry of cases) test(`shared suffix contract: ${entry.name}`,()=>{
 
 test('paths and dependencies remain current after updates and rebinding',()=>{
     const b=new HtmlBuilder();b.data.setItem('record.w',7,{unit:'px'});b.data.setItem('record.h',8);
-    const node=b.root.div(null,{datapath:'record',node_id:'anchor'}).div(null,{width:'^.w:{}px',height:'^#anchor.h:{width}:{}',unit:'=.w?unit:{}'});
+    const node=b.root.div(null,{datapath:'record',nodeId:'anchor'}).div(null,{width:'^.w:{}px',height:'^#anchor.h:{width}:{}',unit:'=.w?unit:{}'});
     assert.equal(node.absDatapath('^#anchor.w?unit:Unit: {}'),'record.w?unit');
     assert.equal(node.absDatapath('^.child.#parent.w:{}'),'record.w');
     assert.deepEqual(b.runtimeValues(node)[1],{width:'7px',height:'7px:8',unit:'px'});
@@ -75,7 +75,7 @@ test('lexical slots ignore strings, comments, regexes and entire template litera
 
 test('named Source metadata is read without adding it to projection',()=>{
     const b=new HtmlBuilder();b.data.setItem('v',3);
-    const node=b.root.div(null,{node_id:'ref',title:'^v:{node_id}:{}'});
+    const node=b.root.div(null,{nodeId:'ref',title:'^v:{nodeId}:{}'});
     assert.deepEqual(b.runtimeValues(node)[1],{title:'ref:3'});
 });
 

@@ -299,7 +299,7 @@ export function validateElementValues(tag, spec, value, attrs) {
     const signature = spec.attributes; if (!signature) return;
     const supplied = { ...attrs }; if (value !== null && value !== undefined) supplied.node_value = value;
     const known = new Set(signature.parameters.filter(p => p.role === 'attribute').map(p => p.name));
-    const framework = new Set(['node_label', 'node_position', 'node_id', 'target_id', 'datapath', 'iterate', 'store', '_tag', '_meta', 'ns']);
+    const framework = new Set(['node_label', 'node_position', 'nodeId', 'target_id', 'datapath', 'iterate', 'store', '_tag', '_meta', 'ns']);
     if (!signature.accepts_var_keyword) for (const name of Object.keys(attrs)) if (!known.has(name) && !framework.has(name)) fail(tag, `unknown attribute '${name}'`);
     const componentRoot = spec._meta?.component ? signature.parameters.find(p =>
         p.role !== 'framework' && ['positional_only', 'positional_or_keyword'].includes(p.kind))?.name : null;

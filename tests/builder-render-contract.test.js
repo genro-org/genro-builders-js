@@ -88,13 +88,13 @@ test('prebuilt child branches are checked before insertion', () => {
 
 test('duplicate node IDs are rejected across nested and promoted parents', () => {
     const builder = makeBuilder();
-    builder.root.leaf('first', { node_id: 'unique' });
+    builder.root.leaf('first', { nodeId: 'unique' });
     const group = builder.root.group('original');
-    assert.throws(() => group.leaf('duplicate', { node_id: 'unique' }), /Duplicate node_id/);
+    assert.throws(() => group.leaf('duplicate', { nodeId: 'unique' }), /Duplicate nodeId/);
     assert.equal(group.value, 'original');
-    const valid = group.leaf('valid', { node_id: 'second' });
+    const valid = group.leaf('valid', { nodeId: 'second' });
     assert.equal(valid.value, 'valid');
-    assert.throws(() => builder.root.leaf('duplicate', { node_id: 'second' }), /Duplicate node_id/);
+    assert.throws(() => builder.root.leaf('duplicate', { nodeId: 'second' }), /Duplicate nodeId/);
     assert.equal(builder.nodeById('unique').value, 'first');
 });
 

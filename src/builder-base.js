@@ -361,8 +361,8 @@ export class BuilderBase {
         const branchBindings = value instanceof SourceBag
             ? value._builderBindingPlan(branchBuilder) : null;
         const rootBuilder = parentOverride?.rootBuilder || bag.root._builder || this;
-        if (attributes.node_id != null && rootBuilder.source.getNodeByAttr('node_id', attributes.node_id)) {
-            throw new Error(`Duplicate node_id '${attributes.node_id}'`);
+        if (attributes.nodeId != null && rootBuilder.source.getNodeByAttr('nodeId', attributes.nodeId)) {
+            throw new Error(`Duplicate nodeId '${attributes.nodeId}'`);
         }
         if (value instanceof SourceBag) {
             this._validateChildren(tag, info, value.getNodes().map(node => node.nodeTag), false);
@@ -472,9 +472,9 @@ export class BuilderBase {
     /** Source node carrying `nodeId` (per-builder id namespace), wrapped
      *  so the grammar dispatch (`.li(...)`) works, like Python's __getattr__. */
     nodeById(nodeId) {
-        const node = this.source.getNodeByAttr('node_id', nodeId);
+        const node = this.source.getNodeByAttr('nodeId', nodeId);
         if (node === null || node === undefined) {
-            throw new Error(`node_id not found: ${nodeId}`);
+            throw new Error(`nodeId not found: ${nodeId}`);
         }
         return node.builder.wrapSource(node);
     }

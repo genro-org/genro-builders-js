@@ -39,7 +39,9 @@ test('loaded grammar validates required values, ranges, cardinality and labels',
     const wrapped = wrapSource(root);
     assert.throws(() => wrapped.item({ score: 2 }), /missing required attribute 'name'/);
     assert.throws(() => wrapped.item({ name: 'a', score: 8 }), /invalid value/);
-    wrapped.item({ name: 'a', score: 2 });
+    const item = wrapped.item({ name: 'a', score: 2, nodeId: 'source-item' });
+    assert.equal(builder.nodeById('source-item'), item);
+    assert.throws(() => wrapped.item({ name: 'b', score: 3, node_id: 'old' }), /unknown attribute 'node_id'/);
     assert.deepEqual(builder.validateSource(), []);
     assert.throws(() => wrapped.item({ name: 'b', score: 3, extra: true }), /unknown attribute/);
     assert.equal(builder.validateParent('root'), true);
